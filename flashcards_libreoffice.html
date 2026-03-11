@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flash Cards – LibreOffice Writer | Α΄ Γυμνασίου</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #273548;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --green: #22c55e;
+    --orange: #f97316;
+    --purple: #a855f7;
+    --yellow: #fbbf24;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(59,130,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 80% 80%, rgba(168,85,247,0.07) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(26px, 5vw, 40px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  header p { color: var(--muted); font-size: 14px; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .progress-bar-bg {
+    flex: 1;
+    height: 10px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+  .progress-count { font-size: 13px; font-weight: 800; color: var(--cyan); white-space: nowrap; }
+
+  /* ── SCORE ROW ── */
+  .score-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .score-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .score-pill .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .score-pill .num { font-weight: 900; font-size: 18px; }
+  .score-pill.correct .dot { background: var(--green); }
+  .score-pill.correct .num { color: var(--green); }
+  .score-pill.wrong .dot { background: var(--red); }
+  .score-pill.wrong .num { color: var(--red); }
+  .score-pill.remaining .dot { background: var(--yellow); }
+  .score-pill.remaining .num { color: var(--yellow); }
+
+  /* ── MODE TABS ── */
+  .mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .mode-tab.active {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(59,130,246,.35);
+  }
+  .mode-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  /* ── FLIP CARD ── */
+  .card-area {
+    perspective: 1200px;
+    margin-bottom: 20px;
+    height: 300px;
+  }
+  .flip-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(.4,0,.2,1);
+    cursor: pointer;
+  }
+  .flip-card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 40px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+  }
+
+  .card-front {
+    background: linear-gradient(145deg, #1e3a5f, #1e2d4a);
+    box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .card-back {
+    background: linear-gradient(145deg, #1a3a2e, #162b22);
+    transform: rotateY(180deg);
+    box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+
+  .card-tag {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: .6;
+  }
+  .card-front .card-tag { color: var(--cyan); }
+  .card-back .card-tag { color: var(--green); }
+
+  .card-number {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .card-icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.4));
+  }
+  .card-question {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(18px, 3.5vw, 26px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .card-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+  .card-hint span {
+    display: inline-block;
+    background: rgba(255,255,255,.08);
+    border-radius: 20px;
+    padding: 3px 12px;
+  }
+
+  .card-answer {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(20px, 4vw, 30px);
+    font-weight: 800;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+  .card-explanation {
+    font-size: 14px;
+    color: #a7c5aa;
+    line-height: 1.5;
+    max-width: 480px;
+  }
+  .card-shortcut {
+    margin-top: 14px;
+    background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    color: var(--yellow);
+    font-weight: 700;
+  }
+
+  /* Flip hint */
+  .flip-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+  /* ── NAVIGATION BUTTONS ── */
+  .nav-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:active { transform: scale(.96); }
+
+  .btn-prev { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .btn-prev:hover { color: var(--text); background: var(--surface); }
+
+  .btn-next { background: var(--blue); color: #fff; flex: 1; justify-content: center;
+    box-shadow: 0 4px 16px rgba(59,130,246,.3); }
+  .btn-next:hover { background: #2563eb; }
+
+  .btn-flip { background: var(--surface2); color: var(--cyan); border: 1px solid var(--cyan);
+    flex: 1; justify-content: center; }
+  .btn-flip:hover { background: rgba(6,182,212,.1); }
+
+  /* ── SELF-ASSESSMENT (after flip) ── */
+  .assess-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  .assess-row.visible { opacity: 1; pointer-events: all; }
+
+  .btn-knew { background: rgba(34,197,94,.15); color: var(--green); border: 1.5px solid var(--green);
+    flex: 1; justify-content: center; }
+  .btn-knew:hover { background: rgba(34,197,94,.25); }
+  .btn-didnt { background: rgba(239,68,68,.15); color: var(--red); border: 1.5px solid var(--red);
+    flex: 1; justify-content: center; }
+  .btn-didnt:hover { background: rgba(239,68,68,.25); }
+
+  /* ── CATEGORY PILLS ── */
+  .categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    justify-content: center;
+  }
+  .cat-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    transition: all .2s;
+  }
+  .cat-btn.active { color: #fff; }
+
+  /* ── QUIZ MODE ── */
+  #quizMode { display: none; }
+  #quizMode.active { display: block; }
+  #flashMode { display: block; }
+  #flashMode.hidden { display: none; }
+
+  .quiz-question-box {
+    background: linear-gradient(145deg, #1e3a5f, #1e2d4a);
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    padding: 32px 36px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .quiz-icon { font-size: 44px; margin-bottom: 12px; }
+  .quiz-q {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .quiz-opt {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--blue); background: rgba(59,130,246,.1); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(34,197,94,.15); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(239,68,68,.12); color: var(--red); }
+  .quiz-opt:disabled { cursor: default; }
+  .opt-letter {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .quiz-opt.correct .opt-letter { background: var(--green); color: #fff; }
+  .quiz-opt.wrong .opt-letter { background: var(--red); color: #fff; }
+
+  .quiz-feedback {
+    text-align: center;
+    font-size: 14px;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    font-weight: 700;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(34,197,94,.15); color: var(--green); }
+  .quiz-feedback.fail { background: rgba(239,68,68,.12); color: var(--red); }
+
+  /* ── FINISH SCREEN ── */
+  #finishScreen { display: none; }
+  #finishScreen.show { display: block; }
+  .finish-box {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    padding: 40px 32px;
+    text-align: center;
+  }
+  .finish-trophy { font-size: 72px; margin-bottom: 16px; }
+  .finish-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .finish-stars { font-size: 32px; letter-spacing: 4px; margin: 12px 0; }
+  .finish-score { font-size: 42px; font-weight: 900; color: var(--cyan); margin: 8px 0; }
+  .finish-msg { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+  .btn-restart { background: linear-gradient(135deg, var(--blue), var(--purple)); color: #fff;
+    font-size: 15px; padding: 12px 28px; border-radius: 14px; margin: 0 auto; justify-content: center; }
+  .btn-restart:hover { opacity: .9; transform: translateY(-1px); }
+
+  /* Card tick overlay */
+  .card-known-badge {
+    position: absolute;
+    top: 12px;
+    right: 56px;
+    font-size: 18px;
+  }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    .quiz-options { grid-template-columns: 1fr; }
+    .card-area { height: 260px; }
+    .card-face { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="badge">🎓 Α΄ Γυμνασίου · Πληροφορική</div>
+    <h1>Flash Cards<br>LibreOffice Writer</h1>
+    <p>Δοκίμασε τις γνώσεις σου για τον Επεξεργαστή Κειμένου!</p>
+  </header>
+
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabFlash" onclick="setMode('flash')">🃏 Flash Cards</button>
+    <button class="mode-tab" id="tabQuiz" onclick="setMode('quiz')">🧠 Κουίζ</button>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="categories" id="catRow">
+    <button class="cat-btn active" style="border-color:#3b82f6;color:#3b82f6" onclick="setCategory('all',this)">🔵 Όλα</button>
+    <button class="cat-btn" style="border-color:#06b6d4;color:#06b6d4" onclick="setCategory('interface',this)">🖥️ Περιβάλλον</button>
+    <button class="cat-btn" style="border-color:#a855f7;color:#a855f7" onclick="setCategory('format',this)">🎨 Μορφοποίηση</button>
+    <button class="cat-btn" style="border-color:#22c55e;color:#22c55e" onclick="setCategory('shortcuts',this)">⌨️ Συντομεύσεις</button>
+  </div>
+
+  <!-- SCORE ROW -->
+  <div class="score-row">
+    <div class="score-pill correct"><div class="dot"></div><span class="num" id="scoreCorrect">0</span> Σωστά</div>
+    <div class="score-pill wrong"><div class="dot"></div><span class="num" id="scoreWrong">0</span> Λάθη</div>
+    <div class="score-pill remaining"><div class="dot"></div><span class="num" id="scoreLeft">0</span> Απομένουν</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <span class="progress-label">Πρόοδος</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <span class="progress-count" id="progressCount">0 / 0</span>
+  </div>
+
+  <!-- ═══ FLASH MODE ═══ -->
+  <div id="flashMode">
+    <div class="flip-hint">👆 Κάνε κλικ στην κάρτα για να δεις την απάντηση</div>
+
+    <div class="card-area">
+      <div class="flip-card" id="flipCard" onclick="flipCard()">
+        <!-- FRONT -->
+        <div class="card-face card-front">
+          <span class="card-tag">❓ Ερώτηση</span>
+          <span class="card-number" id="cardNum">1 / 12</span>
+          <div class="card-icon" id="cardIcon">💻</div>
+          <div class="card-question" id="cardQuestion">Φόρτωση...</div>
+          <div class="card-hint"><span>Κάνε κλικ για απάντηση →</span></div>
+        </div>
+        <!-- BACK -->
+        <div class="card-face card-back">
+          <span class="card-tag">✅ Απάντηση</span>
+          <div class="card-answer" id="cardAnswer"></div>
+          <div class="card-explanation" id="cardExplanation"></div>
+          <div class="card-shortcut" id="cardShortcut" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assessment (shown after flip) -->
+    <div class="assess-row" id="assessRow">
+      <button class="btn btn-didnt" onclick="markCard(false)">😕 Δεν το ήξερα</button>
+      <button class="btn btn-knew" onclick="markCard(true)">✅ Το ήξερα!</button>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-row">
+      <button class="btn btn-prev" onclick="prevCard()">← Πίσω</button>
+      <button class="btn btn-flip" onclick="flipCard()">🔄 Αναστροφή</button>
+      <button class="btn btn-next" onclick="nextCard()">Επόμενο →</button>
+    </div>
+  </div>
+
+  <!-- ═══ QUIZ MODE ═══ -->
+  <div id="quizMode">
+    <div class="quiz-question-box">
+      <div class="quiz-icon" id="quizIcon">🤔</div>
+      <div class="quiz-q" id="quizQuestion">Φόρτωση...</div>
+    </div>
+    <div class="quiz-options" id="quizOptions"></div>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+    <div class="nav-row">
+      <button class="btn btn-next" id="quizNext" onclick="nextQuiz()" style="display:none">Επόμενη ερώτηση →</button>
+    </div>
+  </div>
+
+  <!-- ═══ FINISH SCREEN ═══ -->
+  <div id="finishScreen">
+    <div class="finish-box">
+      <div class="finish-trophy" id="finishTrophy">🏆</div>
+      <div class="finish-title" id="finishTitle">Μπράβο!</div>
+      <div class="finish-stars" id="finishStars">⭐⭐⭐</div>
+      <div class="finish-score" id="finishScore">10/12</div>
+      <div class="finish-msg" id="finishMsg">Εξαιρετική δουλειά!</div>
+      <button class="btn btn-restart" onclick="restart()">🔄 Ξανά από την αρχή</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
+const allCards = [
+  // Interface
+  { id:1, cat:'interface', icon:'🔷', question:'Ποια γραμμή δείχνει το όνομα του αρχείου και του προγράμματος;', answer:'Γραμμή Τίτλου', explanation:'Βρίσκεται στην κορυφή του παραθύρου. Εμφανίζει π.χ. «Εργασία.odt - LibreOffice Writer»', shortcut:null,
+    options:['Γραμμή Τίτλου','Γραμμή Μενού','Γραμμή Εργαλείων','Γραμμή Κατάστασης'] },
+  { id:2, cat:'interface', icon:'🟢', question:'Πού βρίσκονται οι εντολές Αρχείο, Επεξεργασία, Μορφή, Βοήθεια;', answer:'Γραμμή Μενού', explanation:'Η Γραμμή Μενού βρίσκεται ακριβώς κάτω από τη Γραμμή Τίτλου και περιέχει όλες τις εντολές οργανωμένες σε κατηγορίες.', shortcut:null,
+    options:['Γραμμή Τίτλου','Γραμμή Μενού','Γραμμή Εργαλείων','Περιοχή Εγγράφου'] },
+  { id:3, cat:'interface', icon:'🟠', question:'Ποια γραμμή έχει κουμπιά για γρήγορη πρόσβαση σε αποθήκευση, αντιγραφή, εκτύπωση;', answer:'Γραμμή Εργαλείων', explanation:'Η Γραμμή Εργαλείων δίνει γρήγορη πρόσβαση στις πιο συχνά χρησιμοποιούμενες εντολές με ένα κλικ.', shortcut:null,
+    options:['Γραμμή Μενού','Γραμμή Κατάστασης','Γραμμή Εργαλείων','Γραμμή Τίτλου'] },
+  { id:4, cat:'interface', icon:'📄', question:'Πού γράφουμε και επεξεργαζόμαστε το κείμενό μας;', answer:'Περιοχή Εγγράφου', explanation:'Η μεγάλη λευκή περιοχή στο κέντρο του παραθύρου είναι η Περιοχή Εγγράφου – εκεί γράφουμε το κείμενο.', shortcut:null,
+    options:['Γραμμή Τίτλου','Γραμμή Εργαλείων','Γραμμή Μενού','Περιοχή Εγγράφου'] },
+  { id:5, cat:'interface', icon:'📝', question:'Πόσες βασικές γραμμές έχει το παράθυρο του LibreOffice Writer;', answer:'3 Βασικές Γραμμές', explanation:'Γραμμή Τίτλου (πάνω), Γραμμή Μενού (κάτω από τον τίτλο) και Γραμμή Εργαλείων. Υπάρχουν και άλλες ειδικές γραμμές.', shortcut:null,
+    options:['1','2','3 Βασικές Γραμμές','5'] },
+
+  // Format
+  { id:6, cat:'format', icon:'🔤', question:'Πώς ονομάζεται η εμφάνιση/σχέδιο των γραμμάτων (π.χ. Arial, Times New Roman);', answer:'Γραμματοσειρά (Font)', explanation:'Η γραμματοσειρά καθορίζει τη μορφή των γραμμάτων. Συνηθισμένες γραμματοσειρές: Arial, Times New Roman, Calibri.', shortcut:null,
+    options:['Μέγεθος','Χρώμα','Γραμματοσειρά (Font)','Στυλ'] },
+  { id:7, cat:'format', icon:'🔢', question:'Τι μετράει το μέγεθος γραμματοσειράς (π.χ. 12pt);', answer:'Το μέγεθος των γραμμάτων', explanation:'Το μέγεθος μετριέται σε "points" (pt). Για εργασίες χρησιμοποιούμε συνήθως 12pt. Τίτλοι: 16-24pt.', shortcut:null,
+    options:['Το πλάτος της σελίδας','Το χρώμα κειμένου','Το μέγεθος των γραμμάτων','Τη γραμματοσειρά'] },
+  { id:8, cat:'format', icon:'𝐁', question:'Τι κάνει το κουμπί B (Bold) στο κείμενο;', answer:'Κάνει το κείμενο Έντονο', explanation:'Το Bold (Έντονο) κάνει τα γράμματα πιο χοντρά και εμφατικά. Χρησιμοποιείται για τίτλους ή σημαντικές λέξεις.', shortcut:'Ctrl + B',
+    options:['Το κάνει πλάγιο','Το υπογραμμίζει','Το διαγράφει','Κάνει το κείμενο Έντονο'] },
+  { id:9, cat:'format', icon:'𝐼', question:'Τι κάνει το κουμπί I (Italic) στο κείμενο;', answer:'Κάνει το κείμενο Πλάγιο', explanation:'Το Italic (Πλάγιο) γέρνει τα γράμματα προς τα δεξιά. Χρησιμοποιείται για ξένες λέξεις, τίτλους βιβλίων ή έμφαση.', shortcut:'Ctrl + I',
+    options:['Κάνει το κείμενο Πλάγιο','Το κάνει έντονο','Το υπογραμμίζει','Το μεγαλώνει'] },
+  { id:10, cat:'format', icon:'U̲', question:'Τι κάνει το κουμπί U (Underline) στο κείμενο;', answer:'Υπογραμμίζει το κείμενο', explanation:'Το Underline (Υπογράμμιση) βάζει μια γραμμή κάτω από τα γράμματα. Χρησιμοποιείται για υπερσυνδέσμους ή έμφαση.', shortcut:'Ctrl + U',
+    options:['Το διαγράφει','Το κάνει έντονο','Υπογραμμίζει το κείμενο','Το μεγαλώνει'] },
+
+  // Shortcuts
+  { id:11, cat:'shortcuts', icon:'⌨️', question:'Ποια συντόμευση χρησιμοποιούμε για ΑΠΟΘΗΚΕΥΣΗ εγγράφου;', answer:'Ctrl + S', explanation:'Η συντόμευση Ctrl+S αποθηκεύει αμέσως το έγγραφο. Είναι καλή συνήθεια να αποθηκεύουμε συχνά!', shortcut:'Ctrl + S',
+    options:['Ctrl + A','Ctrl + Z','Ctrl + P','Ctrl + S'] },
+  { id:12, cat:'shortcuts', icon:'🖨️', question:'Ποια συντόμευση ανοίγει το παράθυρο ΕΚΤΥΠΩΣΗΣ;', answer:'Ctrl + P', explanation:'Το Ctrl+P ανοίγει το παράθυρο εκτύπωσης. Από εκεί επιλέγουμε εκτυπωτή, αριθμό αντιτύπων κ.ά.', shortcut:'Ctrl + P',
+    options:['Ctrl + S','Ctrl + P','Ctrl + N','Ctrl + X'] },
+  { id:13, cat:'shortcuts', icon:'↩️', question:'Ποια συντόμευση ΑΝΑΙΡΕΙ την τελευταία ενέργεια;', answer:'Ctrl + Z', explanation:'Το Ctrl+Z αναιρεί (undo) την τελευταία ενέργεια. Πολύ χρήσιμο όταν κάνουμε λάθος!', shortcut:'Ctrl + Z',
+    options:['Ctrl + Y','Ctrl + Z','Ctrl + C','Ctrl + V'] },
+  { id:14, cat:'shortcuts', icon:'📋', question:'Ποια συντόμευση ΑΝΤΙΓΡΑΦΕΙ επιλεγμένο κείμενο;', answer:'Ctrl + C', explanation:'Με Ctrl+C αντιγράφουμε το επιλεγμένο κείμενο στο πρόχειρο (clipboard). Μετά χρησιμοποιούμε Ctrl+V για επικόλληση.', shortcut:'Ctrl + C',
+    options:['Ctrl + X','Ctrl + V','Ctrl + C','Ctrl + A'] },
+];
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let mode = 'flash';
+let currentCategory = 'all';
+let cards = [];
+let currentIndex = 0;
+let isFlipped = false;
+let assessed = {}; // id -> true/false
+let quizScore = 0;
+let quizAnswered = false;
+let quizDone = 0;
+
+function getCards() {
+  if (currentCategory === 'all') return [...allCards];
+  return allCards.filter(c => c.cat === currentCategory);
+}
+
+function init() {
+  cards = getCards();
+  currentIndex = 0;
+  isFlipped = false;
+  assessed = {};
+  quizScore = 0;
+  quizAnswered = false;
+  quizDone = 0;
+  document.getElementById('flipCard').classList.remove('flipped');
+  document.getElementById('assessRow').classList.remove('visible');
+  updateScoreDisplay();
+  if (mode === 'flash') renderFlashCard();
+  else renderQuizQuestion();
+}
+
+// ════════════════════════════════════════════
+// FLASH CARD MODE
+// ════════════════════════════════════════════
+function renderFlashCard() {
+  if (currentIndex >= cards.length) { showFinish(); return; }
+  const card = cards[currentIndex];
+  document.getElementById('cardNum').textContent = `${currentIndex + 1} / ${cards.length}`;
+  document.getElementById('cardIcon').textContent = card.icon;
+  document.getElementById('cardQuestion').textContent = card.question;
+  document.getElementById('cardAnswer').textContent = card.answer;
+  document.getElementById('cardExplanation').textContent = card.explanation;
+  const sc = document.getElementById('cardShortcut');
+  if (card.shortcut) { sc.style.display = 'block'; sc.textContent = '⌨️ ' + card.shortcut; }
+  else { sc.style.display = 'none'; }
+  updateProgress();
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('flipCard').classList.toggle('flipped', isFlipped);
+  document.getElementById('assessRow').classList.toggle('visible', isFlipped);
+}
+
+function markCard(knew) {
+  const card = cards[currentIndex];
+  if (assessed[card.id] === undefined) {
+    assessed[card.id] = knew;
+    updateScoreDisplay();
+  }
+  nextCard();
+}
+
+function nextCard() {
+  if (currentIndex < cards.length - 1) {
+    currentIndex++;
+    isFlipped = false;
+    document.getElementById('flipCard').classList.remove('flipped');
+    document.getElementById('assessRow').classList.remove('visible');
+    renderFlashCard();
+  } else {
+    showFinish();
+  }
+}
+
+function prevCard() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    isFlipped = false;
+    document.getElementById('flipCard').classList.remove('flipped');
+    document.getElementById('assessRow').classList.remove('visible');
+    renderFlashCard();
+  }
+}
+
+// ════════════════════════════════════════════
+// QUIZ MODE
+// ════════════════════════════════════════════
+function renderQuizQuestion() {
+  if (currentIndex >= cards.length) { showFinish(); return; }
+  quizAnswered = false;
+  const card = cards[currentIndex];
+  document.getElementById('quizIcon').textContent = card.icon;
+  document.getElementById('quizQuestion').textContent = card.question;
+  document.getElementById('quizFeedback').classList.remove('show','ok','fail');
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('quizNext').style.display = 'none';
+
+  const opts = [...card.options].sort(() => Math.random() - 0.5);
+  const letters = ['Α','Β','Γ','Δ'];
+  const container = document.getElementById('quizOptions');
+  container.innerHTML = '';
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => answerQuiz(opt, card.answer, btn, container);
+    container.appendChild(btn);
+  });
+  updateProgress();
+}
+
+function answerQuiz(selected, correct, btn, container) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  quizDone++;
+
+  const btns = container.querySelectorAll('.quiz-opt');
+  btns.forEach(b => {
+    b.disabled = true;
+    if (b.textContent.replace(/^[ΑΒΓΔ]/,'').trim() === correct) b.classList.add('correct');
+  });
+
+  const fb = document.getElementById('quizFeedback');
+  if (selected === correct) {
+    btn.classList.add('correct');
+    quizScore++;
+    fb.textContent = '🎉 Σωστά! ' + cards[currentIndex].explanation;
+    fb.classList.add('show','ok');
+    assessed[cards[currentIndex].id] = true;
+  } else {
+    btn.classList.add('wrong');
+    fb.textContent = '❌ Λάθος! Η σωστή απάντηση είναι: ' + correct;
+    fb.classList.add('show','fail');
+    assessed[cards[currentIndex].id] = false;
+  }
+  updateScoreDisplay();
+  document.getElementById('quizNext').style.display = 'flex';
+}
+
+function nextQuiz() {
+  currentIndex++;
+  renderQuizQuestion();
+}
+
+// ════════════════════════════════════════════
+// SCORE & PROGRESS
+// ════════════════════════════════════════════
+function updateScoreDisplay() {
+  const correct = Object.values(assessed).filter(v => v).length;
+  const wrong = Object.values(assessed).filter(v => !v).length;
+  const left = cards.length - Object.keys(assessed).length;
+  document.getElementById('scoreCorrect').textContent = correct;
+  document.getElementById('scoreWrong').textContent = wrong;
+  document.getElementById('scoreLeft').textContent = left;
+}
+
+function updateProgress() {
+  const total = cards.length;
+  const done = mode === 'flash' ? currentIndex : currentIndex;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `${done} / ${total}`;
+}
+
+// ════════════════════════════════════════════
+// FINISH
+// ════════════════════════════════════════════
+function showFinish() {
+  document.getElementById('flashMode').classList.add('hidden');
+  document.getElementById('quizMode').classList.remove('active');
+  document.getElementById('finishScreen').classList.add('show');
+
+  const total = cards.length;
+  const correct = Object.values(assessed).filter(v => v).length;
+  const pct = Math.round((correct / total) * 100);
+
+  document.getElementById('finishScore').textContent = `${correct} / ${total}`;
+  const stars = pct >= 90 ? '⭐⭐⭐' : pct >= 60 ? '⭐⭐' : '⭐';
+  document.getElementById('finishStars').textContent = stars;
+
+  let trophy='🏆', title='Εξαιρετικά!', msg='Τέλεια γνώση του LibreOffice Writer!';
+  if (pct < 60) { trophy='📚'; title='Συνέχισε!'; msg='Ξαναδιάβασε τις κάρτες και δοκίμασε ξανά.'; }
+  else if (pct < 90) { trophy='🥈'; title='Πολύ καλά!'; msg='Λίγη ακόμη εξάσκηση και θα τα ξέρεις όλα!'; }
+  document.getElementById('finishTrophy').textContent = trophy;
+  document.getElementById('finishTitle').textContent = title;
+  document.getElementById('finishMsg').textContent = msg;
+}
+
+// ════════════════════════════════════════════
+// CONTROLS
+// ════════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.getElementById('tabFlash').classList.toggle('active', m === 'flash');
+  document.getElementById('tabQuiz').classList.toggle('active', m === 'quiz');
+  document.getElementById('flashMode').classList.toggle('hidden', m !== 'flash');
+  document.getElementById('quizMode').classList.toggle('active', m === 'quiz');
+  document.getElementById('finishScreen').classList.remove('show');
+  if (m === 'flash') document.getElementById('flashMode').classList.remove('hidden');
+  init();
+}
+
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  init();
+}
+
+function restart() {
+  document.getElementById('finishScreen').classList.remove('show');
+  document.getElementById('flashMode').classList.remove('hidden');
+  document.getElementById('quizMode').classList.remove('active');
+  if (mode === 'quiz') document.getElementById('quizMode').classList.add('active');
+  init();
+}
+
+// ════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (mode !== 'flash') return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === 'ArrowLeft') prevCard();
+  if (e.key === 'y' || e.key === 'Y') { if (isFlipped) markCard(true); }
+  if (e.key === 'n' || e.key === 'N') { if (isFlipped) markCard(false); }
+});
+
+// START
+init();
+</script>
+</body>
+</html>

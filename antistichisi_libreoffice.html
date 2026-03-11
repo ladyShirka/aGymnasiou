@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Δραστηριότητα Αντιστοίχισης – LibreOffice Writer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f0f4ff;
+  --surface:  #ffffff;
+  --blue:     #3b6ef8;
+  --blue-lt:  #dce8ff;
+  --green:    #16a34a;
+  --green-lt: #dcfce7;
+  --red:      #dc2626;
+  --red-lt:   #fee2e2;
+  --yellow:   #f59e0b;
+  --yel-lt:   #fef9c3;
+  --purple:   #7c3aed;
+  --pur-lt:   #ede9fe;
+  --cyan:     #0891b2;
+  --cya-lt:   #cffafe;
+  --orange:   #ea580c;
+  --ora-lt:   #ffedd5;
+  --text:     #1e293b;
+  --muted:    #64748b;
+  --border:   #cbd5e1;
+  --shadow:   rgba(30,41,59,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  padding: 24px 12px 60px;
+}
+
+/* subtle dot-grid background */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background-image: radial-gradient(circle, #c7d4f0 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: .45;
+  pointer-events:none;
+}
+
+.wrap { position:relative; z-index:1; max-width:900px; margin:0 auto; }
+
+/* ── HEADER ── */
+.header { text-align:center; margin-bottom:28px; }
+.badge {
+  display:inline-block;
+  background: linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff; font-size:11px; font-weight:900;
+  letter-spacing:2px; text-transform:uppercase;
+  padding:4px 16px; border-radius:99px; margin-bottom:10px;
+}
+.header h1 {
+  font-family:'Fredoka One', cursive;
+  font-size: clamp(28px,5.5vw,46px);
+  color: var(--blue);
+  letter-spacing:1px;
+  line-height:1.1;
+  margin-bottom:6px;
+}
+.header p { color:var(--muted); font-size:14px; }
+
+/* ── SCORE BAR ── */
+.scorebar {
+  display:flex; gap:10px; flex-wrap:wrap;
+  justify-content:center; margin-bottom:22px;
+}
+.sc-pill {
+  display:flex; align-items:center; gap:8px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px; padding:8px 18px; font-size:13px; font-weight:700;
+  box-shadow:0 2px 8px var(--shadow);
+}
+.sc-pill .dot { width:10px;height:10px;border-radius:50%; }
+.sc-pill .num { font-size:20px; font-weight:900; }
+.sc-ok  .dot { background:var(--green); } .sc-ok  .num { color:var(--green); }
+.sc-err .dot { background:var(--red);   } .sc-err .num { color:var(--red);   }
+.sc-left.dot { background:var(--yellow);} .sc-left.num { color:var(--yellow);}
+
+/* ── ROUNDS NAV ── */
+.rounds {
+  display:flex; gap:8px; justify-content:center;
+  flex-wrap:wrap; margin-bottom:26px;
+}
+.rnd-btn {
+  width:40px;height:40px; border-radius:50%;
+  border:2px solid var(--border);
+  background:var(--surface); cursor:pointer;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:14px;
+  color:var(--muted); transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.rnd-btn.active { background:var(--blue); border-color:var(--blue); color:#fff;
+  box-shadow:0 4px 12px rgba(59,110,248,.35); }
+.rnd-btn.done-ok { background:var(--green-lt); border-color:var(--green); color:var(--green); }
+.rnd-btn.done-err{ background:var(--red-lt);   border-color:var(--red);   color:var(--red);   }
+
+/* ── ROUND TITLE ── */
+.round-title {
+  text-align:center; margin-bottom:20px;
+}
+.round-title h2 {
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(18px,3vw,26px);
+  color:var(--text);
+}
+.round-title p { color:var(--muted); font-size:13px; margin-top:4px; }
+
+/* ── MATCHING GRID ── */
+.match-grid {
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:10px 0;
+  align-items:center;
+  margin-bottom:24px;
+}
+
+/* Left column – terms */
+.term-col, .def-col { display:flex; flex-direction:column; gap:10px; }
+.connector-col { display:flex; flex-direction:column; gap:10px; align-items:center; padding:0 8px; }
+
+.term-card {
+  background:var(--surface);
+  border:2px solid var(--border);
+  border-radius:14px;
+  padding:13px 16px;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+  user-select:none;
+  position:relative;
+  box-shadow:0 2px 8px var(--shadow);
+  min-height:58px;
+  display:flex; align-items:center; gap:10px;
+}
+.term-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px var(--shadow); }
+.term-card.selected {
+  border-color:var(--blue); background:var(--blue-lt);
+  box-shadow:0 0 0 3px rgba(59,110,248,.25);
+  transform:scale(1.02);
+}
+.term-card.matched-ok { border-color:var(--green); background:var(--green-lt); cursor:default; }
+.term-card.matched-err{ border-color:var(--red);   background:var(--red-lt);   cursor:default;
+  animation: shake .4s ease; }
+.term-card .t-icon { font-size:22px; flex-shrink:0; }
+
+.def-card {
+  background:var(--surface);
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:13px 16px;
+  font-size:13px;
+  cursor:pointer;
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+  user-select:none;
+  box-shadow:0 2px 8px var(--shadow);
+  min-height:58px;
+  display:flex; align-items:center;
+  color:var(--muted);
+  line-height:1.35;
+}
+.def-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px var(--shadow); border-color:var(--purple); color:var(--text); }
+.def-card.selected {
+  border-color:var(--purple); background:var(--pur-lt); color:var(--text);
+  box-shadow:0 0 0 3px rgba(124,58,237,.22);
+  transform:scale(1.02);
+}
+.def-card.matched-ok  { border-color:var(--green); border-style:solid; background:var(--green-lt); color:var(--green); cursor:default; font-weight:700; }
+.def-card.matched-err { border-color:var(--red);   border-style:solid; background:var(--red-lt);   color:var(--red);   cursor:default;
+  animation:shake .4s ease; }
+
+/* connector dots */
+.conn-dot {
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--border);
+  background:var(--surface);
+  transition:all .3s;
+  flex-shrink:0;
+}
+.conn-dot.matched-ok  { background:var(--green); border-color:var(--green); }
+.conn-dot.matched-err { background:var(--red);   border-color:var(--red);   }
+
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+
+/* ── FEEDBACK TOAST ── */
+.toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--text); color:#fff;
+  border-radius:14px; padding:12px 24px;
+  font-weight:800; font-size:14px;
+  opacity:0; pointer-events:none;
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  z-index:999; white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.ok  { background:var(--green); }
+.toast.err { background:var(--red); }
+
+/* ── ACTION BUTTONS ── */
+.actions {
+  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+  margin-bottom:24px;
+}
+.btn {
+  padding:11px 22px; border:none; border-radius:12px;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:14px;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; gap:7px;
+}
+.btn:active { transform:scale(.96); }
+.btn-check { background:var(--blue); color:#fff; box-shadow:0 4px 14px rgba(59,110,248,.3); }
+.btn-check:hover { background:#2752d0; }
+.btn-reset { background:var(--surface); color:var(--muted); border:1.5px solid var(--border); }
+.btn-reset:hover { color:var(--text); }
+.btn-next  { background:linear-gradient(135deg,var(--blue),var(--purple)); color:#fff;
+  box-shadow:0 4px 14px rgba(124,58,237,.3); }
+.btn-next:hover { opacity:.9; }
+
+/* ── INSTRUCTIONS PANEL ── */
+.instructions {
+  background:var(--yel-lt); border:1.5px solid var(--yellow);
+  border-radius:14px; padding:14px 18px;
+  display:flex; gap:12px; align-items:flex-start;
+  margin-bottom:22px; font-size:13px; color:#78350f;
+}
+.instructions .icon { font-size:22px; flex-shrink:0; }
+
+/* ── FINISH SCREEN ── */
+#finishScreen { display:none; }
+#finishScreen.show { display:block; }
+.finish-card {
+  background:var(--surface); border-radius:24px;
+  border:2px solid var(--border);
+  padding:40px 28px; text-align:center;
+  box-shadow:0 8px 40px var(--shadow);
+}
+.finish-trophy { font-size:80px; margin-bottom:12px; }
+.finish-h {
+  font-family:'Fredoka One',cursive;
+  font-size:36px; color:var(--blue); margin-bottom:6px;
+}
+.finish-stars { font-size:36px; letter-spacing:5px; margin:10px 0; }
+.finish-big { font-size:52px; font-weight:900; color:var(--green); margin:8px 0; }
+.finish-msg { color:var(--muted); font-size:15px; margin-bottom:28px; }
+.btn-restart { background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff; font-size:15px; padding:13px 32px; border-radius:14px;
+  margin:0 auto; box-shadow:0 4px 18px rgba(59,110,248,.3); }
+.btn-restart:hover { transform:translateY(-2px); }
+
+/* ── PROGRESS BAR ── */
+.prog-wrap {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px; padding:10px 18px;
+  display:flex; align-items:center; gap:14px; margin-bottom:22px;
+  box-shadow:0 2px 8px var(--shadow);
+}
+.prog-label { font-size:12px; color:var(--muted); white-space:nowrap; font-weight:700; }
+.prog-bg { flex:1; height:9px; background:#e2e8f0; border-radius:99px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--blue),var(--purple));
+  transition:width .5s cubic-bezier(.4,0,.2,1); width:0%; }
+.prog-pct { font-size:12px; font-weight:900; color:var(--purple); white-space:nowrap; }
+
+/* mobile */
+@media(max-width:560px){
+  .match-grid { grid-template-columns:1fr 12px 1fr; }
+  .term-card, .def-card { font-size:12px; padding:10px 12px; min-height:50px; }
+  .term-card .t-icon { font-size:18px; }
+  .conn-dot { width:12px;height:12px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">🎓 Α΄ Γυμνασίου · Πληροφορική</div>
+    <h1>Δραστηριότητα Αντιστοίχισης</h1>
+    <p>LibreOffice Writer — Αντιστοίχισε τις έννοιες με τις περιγραφές τους</p>
+  </div>
+
+  <!-- INSTRUCTIONS -->
+  <div class="instructions">
+    <span class="icon">💡</span>
+    <span>Κάνε κλικ σε μια <strong>έννοια</strong> (αριστερά) και μετά στην αντίστοιχη <strong>περιγραφή</strong> (δεξιά). Αν η αντιστοίχιση είναι σωστή, θα γίνουν πράσινα!</span>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-wrap">
+    <span class="prog-label">Συνολική Πρόοδος</span>
+    <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+    <span class="prog-pct" id="progPct">0%</span>
+  </div>
+
+  <!-- SCORE -->
+  <div class="scorebar">
+    <div class="sc-pill sc-ok"><div class="dot"></div><span class="num" id="scOk">0</span>&nbsp;Σωστά</div>
+    <div class="sc-pill sc-err"><div class="dot"></div><span class="num" id="scErr">0</span>&nbsp;Λάθη</div>
+    <div class="sc-pill" style="border-color:var(--yellow)"><div class="dot" style="background:var(--yellow)"></div><span class="num" style="color:var(--yellow)" id="scLeft">0</span>&nbsp;Απομένουν</div>
+  </div>
+
+  <!-- ROUND NAVIGATION -->
+  <div class="rounds" id="roundNav"></div>
+
+  <!-- ROUND INFO -->
+  <div class="round-title">
+    <h2 id="roundTitle">Γύρος 1</h2>
+    <p id="roundSub"></p>
+  </div>
+
+  <!-- MAIN GAME AREA -->
+  <div id="gameArea"></div>
+
+  <!-- ACTIONS -->
+  <div class="actions" id="actionsBar">
+    <button class="btn btn-reset" onclick="resetRound()">🔄 Επαναφορά γύρου</button>
+    <button class="btn btn-next"  onclick="nextRound()" id="btnNext" style="display:none">Επόμενος Γύρος →</button>
+  </div>
+
+  <!-- FINISH -->
+  <div id="finishScreen">
+    <div class="finish-card">
+      <div class="finish-trophy" id="fTrophy">🏆</div>
+      <div class="finish-h" id="fTitle">Μπράβο!</div>
+      <div class="finish-stars" id="fStars">⭐⭐⭐</div>
+      <div class="finish-big" id="fScore">12/12</div>
+      <div class="finish-msg" id="fMsg">Άριστος!</div>
+      <button class="btn btn-restart" onclick="restartAll()">🔄 Παίξε ξανά</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// DATA – 3 rounds × 5 pairs each
+// ════════════════════════════════════════
+const ROUNDS = [
+  {
+    title: 'Γύρος 1 – Περιβάλλον Εργασίας',
+    sub:   'Αντιστοίχισε κάθε μέρος του παραθύρου με τη λειτουργία του',
+    pairs: [
+      { id:'r1a', icon:'🔷', term:'Γραμμή Τίτλου',     def:'Εμφανίζει το όνομα του αρχείου και του προγράμματος' },
+      { id:'r1b', icon:'🟢', term:'Γραμμή Μενού',      def:'Περιέχει εντολές όπως Αρχείο, Επεξεργασία, Μορφή' },
+      { id:'r1c', icon:'🟠', term:'Γραμμή Εργαλείων',  def:'Κουμπιά για γρήγορη πρόσβαση σε συχνές εντολές' },
+      { id:'r1d', icon:'📄', term:'Περιοχή Εγγράφου',  def:'Η λευκή περιοχή όπου γράφουμε το κείμενό μας' },
+      { id:'r1e', icon:'📏', term:'Χάρακας',            def:'Βοηθά στην τοποθέτηση περιθωρίων και στηλοθετών' },
+    ]
+  },
+  {
+    title: 'Γύρος 2 – Μορφοποίηση Κειμένου',
+    sub:   'Αντιστοίχισε κάθε εργαλείο μορφοποίησης με την περιγραφή του',
+    pairs: [
+      { id:'r2a', icon:'𝐁',  term:'Bold (Έντονα)',       def:'Κάνει τα γράμματα πιο χοντρά και εμφατικά' },
+      { id:'r2b', icon:'𝐼',  term:'Italic (Πλάγια)',     def:'Γέρνει τα γράμματα προς τα δεξιά' },
+      { id:'r2c', icon:'U̲',  term:'Underline (Υπογρ.)', def:'Προσθέτει γραμμή κάτω από το κείμενο' },
+      { id:'r2d', icon:'🔤', term:'Γραμματοσειρά',       def:'Καθορίζει τη μορφή/σχέδιο των γραμμάτων (π.χ. Arial)' },
+      { id:'r2e', icon:'🔢', term:'Μέγεθος γραμμ.',      def:'Ορίζει πόσο μεγάλα είναι τα γράμματα σε points (pt)' },
+    ]
+  },
+  {
+    title: 'Γύρος 3 – Συντομεύσεις Πληκτρολογίου',
+    sub:   'Αντιστοίχισε τη συντόμευση με την ενέργεια που εκτελεί',
+    pairs: [
+      { id:'r3a', icon:'💾', term:'Ctrl + S',  def:'Αποθηκεύει το έγγραφο' },
+      { id:'r3b', icon:'↩️', term:'Ctrl + Z',  def:'Αναιρεί την τελευταία ενέργεια (Undo)' },
+      { id:'r3c', icon:'📋', term:'Ctrl + C',  def:'Αντιγράφει το επιλεγμένο κείμενο' },
+      { id:'r3d', icon:'📌', term:'Ctrl + V',  def:'Επικολλά το αντιγραμμένο κείμενο' },
+      { id:'r3e', icon:'🖨️', term:'Ctrl + P',  def:'Ανοίγει το παράθυρο εκτύπωσης' },
+    ]
+  }
+];
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let currentRound = 0;
+let selectedTerm = null;   // index in terms array
+let selectedDef  = null;
+let matches      = {};     // pairId -> 'ok'|'err'|null
+let roundState   = [];     // per round
+let totalOk      = 0;
+let totalErr     = 0;
+let totalPairs   = ROUNDS.reduce((s,r)=>s+r.pairs.length,0);
+
+// shuffled definitions array for current round
+let shuffledDefs = [];
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+function init() {
+  totalOk = 0; totalErr = 0;
+  roundState = ROUNDS.map(r => ({
+    matches: {},          // pairId -> 'ok'|'err'
+    done: false
+  }));
+  currentRound = 0;
+  buildRoundNav();
+  loadRound(0);
+  updateScore();
+  updateProgress();
+}
+
+function buildRoundNav() {
+  const nav = document.getElementById('roundNav');
+  nav.innerHTML = '';
+  ROUNDS.forEach((r,i) => {
+    const b = document.createElement('button');
+    b.className = 'rnd-btn' + (i===0?' active':'');
+    b.textContent = i+1;
+    b.id = `rndBtn${i}`;
+    b.onclick = () => { currentRound=i; loadRound(i); };
+    nav.appendChild(b);
+  });
+}
+
+function loadRound(idx) {
+  currentRound = idx;
+  selectedTerm = null;
+  selectedDef  = null;
+
+  // Update nav buttons
+  document.querySelectorAll('.rnd-btn').forEach((b,i) => {
+    b.className = 'rnd-btn';
+    const st = roundState[i];
+    const pairs = ROUNDS[i].pairs;
+    const okCount = Object.values(st.matches).filter(v=>v==='ok').length;
+    if (i===idx) b.classList.add('active');
+    else if (st.done) b.classList.add('done-ok');
+    else if (okCount > 0) b.classList.add('done-err');
+  });
+
+  const round = ROUNDS[idx];
+  document.getElementById('roundTitle').textContent = round.title;
+  document.getElementById('roundSub').textContent   = round.sub;
+
+  // Shuffle definitions
+  shuffledDefs = shuffle([...round.pairs]);
+
+  renderGrid(idx);
+  updateNextBtn(idx);
+}
+
+function renderGrid(idx) {
+  const round   = ROUNDS[idx];
+  const state   = roundState[idx];
+  const area    = document.getElementById('gameArea');
+  area.innerHTML = '';
+
+  const grid = document.createElement('div');
+  grid.className = 'match-grid';
+
+  const termCol = document.createElement('div'); termCol.className = 'term-col';
+  const connCol = document.createElement('div'); connCol.className = 'connector-col';
+  const defCol  = document.createElement('div'); defCol.className  = 'def-col';
+
+  round.pairs.forEach((pair, ti) => {
+    // TERM card
+    const tc = document.createElement('div');
+    tc.className = 'term-card';
+    tc.dataset.idx = ti;
+    const st = state.matches[pair.id];
+    if (st==='ok')  tc.classList.add('matched-ok');
+    if (st==='err') tc.classList.add('matched-err');
+    if (!st) tc.onclick = () => onTermClick(ti);
+    tc.innerHTML = `<span class="t-icon">${pair.icon}</span><span>${pair.term}</span>`;
+    termCol.appendChild(tc);
+
+    // Connector dot
+    const dot = document.createElement('div');
+    dot.className = 'conn-dot';
+    dot.id = `dot-${pair.id}`;
+    if (st==='ok')  dot.classList.add('matched-ok');
+    if (st==='err') dot.classList.add('matched-err');
+    connCol.appendChild(dot);
+  });
+
+  // DEF cards (shuffled)
+  shuffledDefs.forEach((pair, di) => {
+    const dc = document.createElement('div');
+    dc.className = 'def-card';
+    dc.dataset.idx = di;
+    // find if this def is matched
+    const matchedAs = state.matches[pair.id];
+    if (matchedAs==='ok')  { dc.classList.add('matched-ok');  dc.innerHTML = `✅ ${pair.def}`; }
+    else if (matchedAs==='err') { dc.classList.add('matched-err'); dc.innerHTML = `❌ ${pair.def}`; }
+    else { dc.textContent = pair.def; dc.onclick = () => onDefClick(di); }
+    defCol.appendChild(dc);
+  });
+
+  grid.appendChild(termCol);
+  grid.appendChild(connCol);
+  grid.appendChild(defCol);
+  area.appendChild(grid);
+}
+
+// ════════════════════════════════════════
+// CLICK HANDLERS
+// ════════════════════════════════════════
+function onTermClick(ti) {
+  const state = roundState[currentRound];
+  const pair  = ROUNDS[currentRound].pairs[ti];
+  if (state.matches[pair.id]) return; // already matched
+
+  selectedTerm = ti;
+  renderGrid(currentRound);   // re-render to clear previous selections
+  // re-apply selected class
+  const termCards = document.querySelectorAll('.term-card');
+  termCards[ti].classList.add('selected');
+  // keep def selected if any
+  if (selectedDef !== null) {
+    const defCards = document.querySelectorAll('.def-card');
+    if (defCards[selectedDef]) defCards[selectedDef].classList.add('selected');
+    tryMatch();
+  }
+}
+
+function onDefClick(di) {
+  const state = roundState[currentRound];
+  const pair  = shuffledDefs[di];
+  if (state.matches[pair.id]) return;
+
+  selectedDef = di;
+  renderGrid(currentRound);
+  if (selectedTerm !== null) {
+    const termCards = document.querySelectorAll('.term-card');
+    if (termCards[selectedTerm]) termCards[selectedTerm].classList.add('selected');
+  }
+  const defCards = document.querySelectorAll('.def-card');
+  defCards[di].classList.add('selected');
+
+  if (selectedTerm !== null) tryMatch();
+}
+
+function tryMatch() {
+  if (selectedTerm === null || selectedDef === null) return;
+
+  const round    = ROUNDS[currentRound];
+  const state    = roundState[currentRound];
+  const termPair = round.pairs[selectedTerm];
+  const defPair  = shuffledDefs[selectedDef];
+
+  const isOk = (termPair.id === defPair.id);
+  state.matches[termPair.id] = isOk ? 'ok' : 'err';
+
+  if (isOk) {
+    totalOk++;
+    showToast('🎉 Σωστά! Τέλεια αντιστοίχιση!', 'ok');
+  } else {
+    totalErr++;
+    showToast('❌ Λάθος! Δοκίμασε ξανά.', 'err');
+    // clear the wrong match after 800ms
+    setTimeout(() => {
+      state.matches[termPair.id] = null;
+      selectedTerm = null;
+      selectedDef  = null;
+      renderGrid(currentRound);
+      updateScore();
+      updateProgress();
+    }, 800);
+  }
+
+  selectedTerm = null;
+  selectedDef  = null;
+  renderGrid(currentRound);
+  updateScore();
+  updateProgress();
+
+  // Check round complete
+  const allOk = round.pairs.every(p => state.matches[p.id] === 'ok');
+  if (allOk) {
+    state.done = true;
+    updateRoundNav();
+    updateNextBtn(currentRound);
+    showToast('🏅 Γύρος ολοκληρώθηκε!', 'ok');
+
+    // Check all rounds done
+    const allDone = roundState.every(s => s.done);
+    if (allDone) setTimeout(showFinish, 900);
+  }
+}
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function resetRound() {
+  const state = roundState[currentRound];
+  const okBefore = Object.values(state.matches).filter(v=>v==='ok').length;
+  totalOk  -= okBefore;
+  totalErr  = Math.max(0, totalErr - Object.values(state.matches).filter(v=>v==='err').length);
+  state.matches = {};
+  state.done    = false;
+  selectedTerm  = null;
+  selectedDef   = null;
+  loadRound(currentRound);
+  updateScore();
+  updateProgress();
+}
+
+function nextRound() {
+  if (currentRound < ROUNDS.length - 1) loadRound(currentRound + 1);
+  else showFinish();
+}
+
+function restartAll() {
+  document.getElementById('finishScreen').classList.remove('show');
+  document.getElementById('gameArea').style.display = '';
+  document.getElementById('actionsBar').style.display = '';
+  document.querySelector('.scorebar').style.display = '';
+  document.querySelector('.rounds').style.display = '';
+  document.querySelector('.round-title').style.display = '';
+  document.querySelector('.prog-wrap').style.display = '';
+  init();
+}
+
+function updateNextBtn(idx) {
+  const btn = document.getElementById('btnNext');
+  const st  = roundState[idx];
+  btn.style.display = st.done ? 'flex' : 'none';
+  if (idx === ROUNDS.length - 1 && st.done) btn.textContent = '🏁 Τέλος!';
+  else btn.textContent = 'Επόμενος Γύρος →';
+}
+
+function updateRoundNav() {
+  document.querySelectorAll('.rnd-btn').forEach((b,i) => {
+    b.className = 'rnd-btn';
+    if (i===currentRound) b.classList.add('active');
+    else if (roundState[i].done) b.classList.add('done-ok');
+  });
+}
+
+function updateScore() {
+  document.getElementById('scOk').textContent  = totalOk;
+  document.getElementById('scErr').textContent = totalErr;
+  const matched = ROUNDS.flatMap((r,ri) => Object.values(roundState[ri].matches).filter(v=>v==='ok')).length;
+  document.getElementById('scLeft').textContent = totalPairs - matched;
+}
+
+function updateProgress() {
+  const matched = ROUNDS.flatMap((r,ri) => Object.values(roundState[ri].matches).filter(v=>v==='ok')).length;
+  const pct = Math.round((matched/totalPairs)*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progPct').textContent  = pct+'%';
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.className='toast'; }, 2200);
+}
+
+function showFinish() {
+  document.getElementById('finishScreen').classList.add('show');
+  document.getElementById('gameArea').style.display    = 'none';
+  document.getElementById('actionsBar').style.display  = 'none';
+
+  const pct = Math.round((totalOk/totalPairs)*100);
+  const stars = pct>=90?'⭐⭐⭐':pct>=60?'⭐⭐':'⭐';
+  let trophy='🏆', title='Εξαιρετικά!', msg='Γνωρίζεις το LibreOffice Writer πολύ καλά!';
+  if (pct<60){trophy='📚';title='Συνέχισε!';msg='Επανέλαβε τη θεωρία και δοκίμασε ξανά.';}
+  else if(pct<90){trophy='🥈';title='Πολύ καλά!';msg='Μια μικρή επανάληψη και θα είσαι τέλειος!';}
+
+  document.getElementById('fTrophy').textContent = trophy;
+  document.getElementById('fTitle').textContent  = title;
+  document.getElementById('fStars').textContent  = stars;
+  document.getElementById('fScore').textContent  = `${totalOk}/${totalPairs}`;
+  document.getElementById('fMsg').textContent    = msg;
+}
+
+function shuffle(arr) {
+  for (let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// START
+init();
+</script>
+</body>
+</html>
