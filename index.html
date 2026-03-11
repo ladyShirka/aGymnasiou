@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Μαθαίνω Πληροφορική</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --green: #16a34a;
+      --yellow: #fbbf24;
+      --orange: #f97316;
+      --bg: #f0f7ff;
+      --white: #ffffff;
+      --text: #1e293b;
+      --text-soft: #64748b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 10% 20%, #bfdbfe55 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, #ddd6fe55 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, #bbf7d055 0%, transparent 60%);
+      z-index: 0;
+      animation: bgShift 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgShift {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.05) rotate(1deg); }
+    }
+
+    /* Floating shapes */
+    .shape {
+      position: fixed;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float 6s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .shape-1 { width: 120px; height: 120px; background: var(--blue); top: 5%; left: 3%; animation-delay: 0s; }
+    .shape-2 { width: 80px; height: 80px; background: var(--purple); top: 20%; right: 5%; animation-delay: 1.5s; border-radius: 30% 70% 70% 30%/30% 30% 70% 70%; }
+    .shape-3 { width: 60px; height: 60px; background: var(--orange); bottom: 15%; left: 8%; animation-delay: 3s; transform: rotate(45deg); border-radius: 10px; }
+    .shape-4 { width: 100px; height: 100px; background: var(--green); bottom: 10%; right: 7%; animation-delay: 4.5s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    /* Header */
+    header {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 3rem 1rem 1.5rem;
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.3rem 1rem;
+      border-radius: 50px;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(251,191,36,0.4);
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+
+    h1.site-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      color: var(--text);
+      line-height: 1.1;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+    }
+
+    h1.site-title span.accent {
+      color: var(--blue);
+      display: inline-block;
+      animation: wiggle 3s ease-in-out 1s infinite;
+    }
+
+    @keyframes wiggle {
+      0%, 90%, 100% { transform: rotate(0deg); }
+      92% { transform: rotate(-3deg); }
+      96% { transform: rotate(3deg); }
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-soft);
+      font-weight: 600;
+      margin-top: 0.6rem;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+    }
+
+    /* Star rating */
+    .stars {
+      margin-top: 0.8rem;
+      font-size: 1.4rem;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Section grid */
+    .sections-grid {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      max-width: 900px;
+      margin: 2rem auto 3rem;
+      padding: 0 1.5rem;
+    }
+
+    /* Section Card */
+    .section-card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+      animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .section-card:nth-child(1) { animation-delay: 0.4s; }
+    .section-card:nth-child(2) { animation-delay: 0.55s; }
+
+    .section-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .card-blue::before { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .card-purple::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+    .section-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.06);
+    }
+
+    .section-card:active {
+      transform: translateY(-4px) scale(1.01);
+    }
+
+    /* Card background decoration */
+    .card-bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.08;
+      right: -30px;
+      bottom: -30px;
+      width: 180px;
+      height: 180px;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    .card-blue .card-bg-circle { background: var(--blue); }
+    .card-purple .card-bg-circle { background: var(--purple); }
+
+    .section-card:hover .card-bg-circle {
+      transform: scale(1.3);
+      opacity: 0.12;
+    }
+
+    /* Icon */
+    .card-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      margin-bottom: 1.2rem;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .card-blue .card-icon { background: var(--blue-light); }
+    .card-purple .card-icon { background: var(--purple-light); }
+
+    .section-card:hover .card-icon {
+      transform: scale(1.15) rotate(-5deg);
+    }
+
+    /* Card number badge */
+    .card-number {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.5rem;
+      font-family: 'Fredoka One', cursive;
+      font-size: 3rem;
+      opacity: 0.07;
+      line-height: 1;
+      color: var(--text);
+      transition: opacity 0.3s;
+    }
+    .section-card:hover .card-number { opacity: 0.1; }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      border-radius: 50px;
+      margin-bottom: 0.7rem;
+    }
+    .card-blue .card-tag { background: var(--blue-light); color: var(--blue); }
+    .card-purple .card-tag { background: var(--purple-light); color: var(--purple); }
+
+    .card-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+      line-height: 1.2;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      line-height: 1.6;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Topics list */
+    .card-topics {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topic-chip {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      border: 2px solid transparent;
+    }
+
+    .card-blue .topic-chip { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .card-purple .topic-chip { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+
+    /* CTA Arrow */
+    .card-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1.5rem;
+      font-weight: 800;
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+      transition: gap 0.3s ease;
+    }
+    .card-blue .card-cta { color: var(--blue); }
+    .card-purple .card-cta { color: var(--purple); }
+
+    .section-card:hover .card-cta { gap: 0.7rem; }
+
+    .cta-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 1rem;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .card-blue .cta-arrow { background: var(--blue); color: white; }
+    .card-purple .cta-arrow { background: var(--purple); color: white; }
+
+    .section-card:hover .cta-arrow { transform: translateX(4px) scale(1.1); }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-soft);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    footer .footer-heart { color: #ef4444; display: inline-block; animation: heartbeat 1.5s ease-in-out infinite; }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+
+    /* Progress bar */
+    .progress-container {
+      position: relative;
+      z-index: 10;
+      max-width: 900px;
+      margin: 0 auto 1rem;
+      padding: 0 1.5rem;
+    }
+
+    .progress-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-soft);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar-outer {
+      background: #e2e8f0;
+      border-radius: 50px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      width: 14%;
+      animation: growBar 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s both;
+    }
+
+    @keyframes growBar {
+      from { width: 0%; }
+      to { width: 14%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background shapes -->
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+  <div class="shape shape-3"></div>
+  <div class="shape shape-4"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-badge">🎒 Πληροφορική Δημοτικού</div>
+    <h1 class="site-title">Μαθαίνω <span class="accent">Πληροφορική</span></h1>
+    <p class="subtitle">Επίλεξε μία ενότητα για να ξεκινήσεις!</p>
+    <div class="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+  </header>
+
+  <!-- Progress -->
+  <div class="progress-container">
+    <div class="progress-label">
+      <span>📊 Πρόοδος</span>
+      <span>1/7 ενότητες</span>
+    </div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner"></div>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="sections-grid">
+
+    <!-- Ενότητα 1 -->
+    <a href="enothta1.html" class="section-card card-blue">
+      <div class="card-bg-circle"></div>
+      <div class="card-number">1</div>
+      <div class="card-icon">🌐</div>
+      <div class="card-tag">Ενότητα 1</div>
+      <h2 class="card-title">Ψηφιακός Κόσμος</h2>
+      <p class="card-desc">Ανακαλύψτε τον κόσμο της τεχνολογίας, τους υπολογιστές και το διαδίκτυο!</p>
+      <div class="card-topics">
+        <span class="topic-chip">💻 Υπολογιστές</span>
+        <span class="topic-chip">🌍 Διαδίκτυο</span>
+        <span class="topic-chip">📱 Συσκευές</span>
+        <span class="topic-chip">🔒 Ασφάλεια</span>
+      </div>
+      <div class="card-cta">
+        Ξεκίνα εδώ
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Ενότητα 7 -->
+    <a href="enothta7.html" class="section-card card-purple">
+      <div class="card-bg-circle"></div>
+      <div class="card-number">7</div>
+      <div class="card-icon">✍️</div>
+      <div class="card-tag">Ενότητα 7</div>
+      <h2 class="card-title">Δημιουργώ με τον Κειμενογράφο</h2>
+      <p class="card-desc">Μάθε να γράφεις, να διαμορφώνεις και να δημιουργείς κείμενα στον υπολογιστή!</p>
+      <div class="card-topics">
+        <span class="topic-chip">📝 Πληκτρολόγηση</span>
+        <span class="topic-chip">🎨 Μορφοποίηση</span>
+        <span class="topic-chip">📄 Έγγραφα</span>
+        <span class="topic-chip">🖨️ Εκτύπωση</span>
+      </div>
+      <div class="card-cta">
+        Ξεκίνα εδώ
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+
+  <footer>
+    Φτιαγμένο με <span class="footer-heart">♥</span> για μαθητές Δημοτικού
+  </footer>
+
+</body>
+</html>
