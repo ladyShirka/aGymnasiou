@@ -133,12 +133,15 @@
       position: relative;
       z-index: 10;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+     /* grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));*/
+	  grid-template-columns: repeat(3, 1fr);
       gap: 2rem;
-      max-width: 900px;
+      /*max-width: 900px;*/
+	  max-width: 1400px;
       margin: 2rem auto 3rem;
       padding: 0 1.5rem;
     }
+
 
     /* Section Card */
     .section-card {
@@ -394,7 +397,7 @@
   </header>
 
   <!-- Progress -->
-  <div class="progress-container">
+  <!--<div class="progress-container">
     <div class="progress-label">
       <span>📊 Πρόοδος</span>
       <span>1/7 ενότητες</span>
@@ -402,7 +405,7 @@
     <div class="progress-bar-outer">
       <div class="progress-bar-inner"></div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Cards -->
   <div class="sections-grid">
@@ -446,12 +449,37 @@
         <span class="cta-arrow">→</span>
       </div>
     </a>
+	
+	<!--Ενότητα 8 - Αλγοριθμική -->
+	<a href="paixnidi-doxeia.html" class="section-card card-blue">
+  <div class="card-bg-circle"></div>
+  <div class="card-number">8</div>
+  <div class="card-icon">💧</div>
+  <div class="card-tag">Αλγοριθμική</div>
+  <h2 class="card-title">Το πρόβλημα των δοχείων</h2>
+  <p class="card-desc">
+    Παίξε με τα δοχεία των 5L και 3L και προσπάθησε να μετρήσεις ακριβώς 1 λίτρο.
+  </p>
+  <div class="card-topics">
+    <span class="topic-chip">Αλγόριθμος</span>
+    <span class="topic-chip">Λογική</span>
+    <span class="topic-chip">Πρόβλημα</span>
+    <span class="topic-chip">Διαδραστικό</span>
+  </div>
+  <div class="card-cta">
+    Άνοιγμα παιχνιδιού <span class="cta-arrow">→</span>
+  </div>
+</a>
+
 
   </div>
 
-  <footer>
-    Φτιαγμένο με <span class="footer-heart">♥</span> για μαθητές Γυμνασίου
-  </footer>
+    <footer style="text-align: center; padding: 20px; color: #00008B; border-top: 1px solid #eee; margin-top: 40px;">
+		<p> Δημιουργία © 2026 <strong>Ευγενία Παπαδοπούλου </strong>, ΠΕ86<br>
+			Αυτό το έργο διατίθεται με την άδεια <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>
+			<!--<img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"</a>-->
+		</p>		
+    </footer>
 
 </body>
 </html>

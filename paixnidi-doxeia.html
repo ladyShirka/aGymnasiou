@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="el" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Παιχνίδι Μπιτονιών Νερού</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+
+      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+      --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+      --space-12: 3rem; --space-16: 4rem;
+
+      --color-bg: #f7f6f2;
+      --color-surface: #fffdf8;
+      --color-surface-2: #f2efe8;
+      --color-surface-offset: #ebe6dc;
+      --color-border: rgba(40,37,29,0.12);
+      --color-divider: #ddd7cb;
+      --color-text: #28251d;
+      --color-text-muted: #6f6b62;
+      --color-text-faint: #9f9a90;
+      --color-text-inverse: #fffdf8;
+      --color-primary: #0c7a7f;
+      --color-primary-hover: #095b5f;
+      --color-success: #4f8a10;
+      --color-warning: #d77d00;
+      --color-accent: #4b74ff;
+      --color-jug-5: #1f8ea3;
+      --color-jug-3: #ff9b54;
+      --shadow-sm: 0 2px 8px rgba(50, 44, 34, 0.08);
+      --shadow-md: 0 10px 26px rgba(50, 44, 34, 0.12);
+      --radius-sm: 0.5rem; --radius-md: 0.9rem; --radius-lg: 1.25rem; --radius-xl: 1.6rem; --radius-full: 9999px;
+      --font-display: 'Baloo 2', cursive;
+      --font-body: 'Manrope', system-ui, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #22201c;
+      --color-surface-2: #2a2722;
+      --color-surface-offset: #322e28;
+      --color-border: rgba(255,255,255,0.12);
+      --color-divider: #403b34;
+      --color-text: #f1ede3;
+      --color-text-muted: #c5bfaf;
+      --color-text-faint: #958e81;
+      --color-text-inverse: #171614;
+      --color-primary: #64bec4;
+      --color-primary-hover: #8fd8dd;
+      --color-success: #8cc85c;
+      --color-warning: #ffbb5e;
+      --color-accent: #92a8ff;
+      --color-jug-5: #59bad0;
+      --color-jug-3: #ffb57d;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.28);
+      --shadow-md: 0 10px 26px rgba(0,0,0,0.36);
+    }
+
+    *,:before,:after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:none;text-size-adjust:none;scroll-behavior:smooth}
+    body{min-height:100dvh;line-height:1.6;font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:
+      radial-gradient(circle at top right, rgba(75,116,255,0.10), transparent 24%),
+      radial-gradient(circle at top left, rgba(12,122,127,0.12), transparent 28%),
+      var(--color-bg);
+    }
+    img,svg{display:block;max-width:100%;height:auto}
+    button,input{font:inherit;color:inherit}
+    button{cursor:pointer;border:none;background:none}
+    a{color:inherit}
+    :focus-visible{outline:3px solid var(--color-accent);outline-offset:3px;border-radius:var(--radius-sm)}
+    @media (prefers-reduced-motion: reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+    .skip-link{position:absolute;left:var(--space-4);top:-40px;background:var(--color-primary);color:var(--color-text-inverse);padding:var(--space-3) var(--space-4);border-radius:var(--radius-full);z-index:50}
+    .skip-link:focus{top:var(--space-4)}
+
+    .shell{width:min(1100px, calc(100% - 2rem));margin-inline:auto;padding-block:var(--space-4) var(--space-10)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-6)}
+    .brand{display:flex;align-items:center;gap:var(--space-3)}
+    .logo{width:52px;height:52px;color:var(--color-primary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-2);box-shadow:var(--shadow-sm)}
+    .brand h1{font-family:var(--font-display);font-size:var(--text-xl);line-height:1}
+    .brand p{color:var(--color-text-muted);font-size:var(--text-sm)}
+    .theme-toggle{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:var(--radius-full);background:var(--color-surface);border:1px solid var(--color-border);box-shadow:var(--shadow-sm)}
+
+    .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:var(--space-6);align-items:stretch;margin-bottom:var(--space-6)}
+    .panel{background:color-mix(in srgb, var(--color-surface) 92%, transparent);border:1px solid var(--color-border);border-radius:var(--radius-xl);box-shadow:var(--shadow-md)}
+    .hero-card{padding:var(--space-8)}
+    .eyebrow{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);background:var(--color-surface-2);color:var(--color-primary);font-size:var(--text-xs);font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:var(--space-4)}
+    .hero h2{font-family:var(--font-display);font-size:var(--text-2xl);line-height:1.02;max-width:11ch;margin-bottom:var(--space-4)}
+    .hero p{max-width:60ch;color:var(--color-text-muted);margin-bottom:var(--space-5)}
+    .mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3)}
+    .mini-card{padding:var(--space-4);background:var(--color-surface-2);border-radius:var(--radius-lg);border:1px solid var(--color-border)}
+    .mini-card strong{display:block;font-size:var(--text-lg);font-weight:800;color:var(--color-primary)}
+    .mini-card span{font-size:var(--text-sm);color:var(--color-text-muted)}
+
+    .mission{padding:var(--space-6);display:flex;flex-direction:column;justify-content:center;gap:var(--space-4)}
+    .mission-box{padding:var(--space-5);border-radius:var(--radius-lg);background:linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 12%, var(--color-surface)), var(--color-surface-2));border:1px solid var(--color-border)}
+    .mission-box h3{font-size:var(--text-lg);margin-bottom:var(--space-2)}
+    .mission-box p{color:var(--color-text-muted)}
+
+    .main-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:var(--space-6)}
+    .game-area,.side-area{display:flex;flex-direction:column;gap:var(--space-6)}
+    .card{padding:var(--space-6)}
+    .card h3{font-size:var(--text-lg);margin-bottom:var(--space-3)}
+    .card p{color:var(--color-text-muted)}
+
+    .jugs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-6);align-items:end;margin-top:var(--space-4)}
+    .jug-wrap{text-align:center}
+    .jug-label{font-weight:800;margin-bottom:var(--space-2)}
+    .jug-visual{width:min(220px,100%);height:270px;margin-inline:auto;border-radius:1.5rem 1.5rem 1rem 1rem;border:4px solid var(--color-border);background:linear-gradient(to top, var(--color-surface-offset), var(--color-surface));position:relative;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,0.15), var(--shadow-sm)}
+    .jug-visual:before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:44%;height:14px;border-radius:var(--radius-full);background:rgba(255,255,255,0.55)}
+    .water{position:absolute;left:0;right:0;bottom:0;height:0%;transition:height .45s cubic-bezier(.16,1,.3,1);display:flex;align-items:flex-start;justify-content:center;padding-top:var(--space-3);color:#fff;font-weight:800}
+    .water.five{background:linear-gradient(180deg, color-mix(in srgb, white 18%, var(--color-jug-5)), var(--color-jug-5))}
+    .water.three{background:linear-gradient(180deg, color-mix(in srgb, white 14%, var(--color-jug-3)), var(--color-jug-3))}
+    .jug-scale{display:flex;justify-content:center;gap:var(--space-2);margin-top:var(--space-3);font-size:var(--text-sm);color:var(--color-text-muted)}
+
+    .action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);margin-top:var(--space-4)}
+    .btn{min-height:48px;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);font-weight:800;border:1px solid transparent;transition:transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:var(--color-primary);color:var(--color-text-inverse);box-shadow:var(--shadow-sm)}
+    .btn.primary:hover{background:var(--color-primary-hover)}
+    .btn.secondary{background:var(--color-surface-2);border-color:var(--color-border)}
+    .btn.ghost{background:transparent;border-color:var(--color-border)}
+    .btn.success{background:var(--color-success);color:#fff}
+    .btn.warning{background:var(--color-warning);color:#1d1405}
+
+    .status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3);margin-top:var(--space-5)}
+    .status-box{padding:var(--space-4);background:var(--color-surface-2);border-radius:var(--radius-lg);border:1px solid var(--color-border)}
+    .status-box span{display:block;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:var(--space-1)}
+    .status-box strong{font-size:var(--text-lg)}
+
+    .message{margin-top:var(--space-5);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface-2);border:1px dashed var(--color-border);font-weight:700}
+    .message.success{background:color-mix(in srgb, var(--color-success) 12%, var(--color-surface));border-style:solid}
+
+    .steps{display:flex;flex-direction:column;gap:var(--space-3);max-height:420px;overflow:auto;padding-right:var(--space-2);margin-top:var(--space-4)}
+    .step{padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface-2);border:1px solid var(--color-border)}
+    .step b{display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:var(--radius-full);background:var(--color-primary);color:var(--color-text-inverse);margin-right:var(--space-2);font-size:var(--text-sm)}
+    .step small{display:block;color:var(--color-text-muted);margin-top:var(--space-2)}
+
+    .hint-list{display:grid;gap:var(--space-3);margin-top:var(--space-3)}
+    .hint{padding:var(--space-4);background:var(--color-surface-2);border-left:4px solid var(--color-accent);border-radius:0 var(--radius-lg) var(--radius-lg) 0}
+
+    .footer-note{margin-top:var(--space-6);text-align:center;color:var(--color-text-muted);font-size:var(--text-sm)}
+
+    @media (max-width: 900px){
+      .hero,.main-grid{grid-template-columns:1fr}
+      .hero h2{max-width:unset}
+    }
+    @media (max-width: 640px){
+      .shell{width:min(100% - 1rem, 1100px)}
+      .hero-card,.mission,.card{padding:var(--space-5)}
+      .mini-grid,.status,.action-grid,.jugs{grid-template-columns:1fr}
+      .topbar{align-items:flex-start}
+      .brand h1{font-size:1.7rem}
+      .jug-visual{height:230px}
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Μετάβαση στο παιχνίδι</a>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" aria-label="Λογότυπο παιχνιδιού μπιτονιών">
+          <path d="M18 17c0-3.3 2.7-6 6-6h16c3.3 0 6 2.7 6 6v4h3c2.2 0 4 1.8 4 4v24c0 2.8-2.2 5-5 5H16c-2.8 0-5-2.2-5-5V25c0-2.2 1.8-4 4-4h3v-4Z" stroke="currentColor" stroke-width="4"/>
+          <path d="M23 35c4 5 14 5 18 0" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="25" cy="28" r="2.5" fill="currentColor"/>
+          <circle cx="39" cy="28" r="2.5" fill="currentColor"/>
+        </svg>
+        <div>
+          <h1>Παιχνίδι Μπιτονιών</h1>
+          <p>Μαθαίνω αλγόριθμο παίζοντας με 5L και 3L.</p>
+        </div>
+      </div>
+      <button class="theme-toggle" data-theme-toggle aria-label="Αλλαγή θέματος">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="panel hero-card">
+          <div class="eyebrow">Εκπαιδευτικό παιχνίδι λογικής</div>
+          <h2>Βοήθησε την Ηλέκτρα να μετρήσει ακριβώς 1 λίτρο!</h2>
+          <p>Χρησιμοποίησε τις ίδιες κινήσεις που εφαρμόζουμε στην αλγοριθμική σκέψη: γέμισε, άδειασε και μετάφερε νερό. Παρατήρησε τα δεδομένα, δοκίμασε στρατηγικές και βρες τη σωστή ακολουθία βημάτων.</p>
+          <div class="mini-grid">
+            <div class="mini-card"><strong>2</strong><span>μπιτόνια</span></div>
+            <div class="mini-card"><strong>3</strong><span>ενέργειες</span></div>
+            <div class="mini-card"><strong>1</strong><span>στόχος</span></div>
+          </div>
+        </div>
+        <aside class="panel mission">
+          <div class="mission-box">
+            <h3>Αποστολή</h3>
+            <p>Να έχεις στο τέλος ακριβώς 1 λίτρο σε ένα από τα δύο μπιτόνια.</p>
+          </div>
+          <div class="mission-box">
+            <h3>Επιτρεπτές κινήσεις</h3>
+            <p>Γέμισμα από τη βρύση, άδειασμα όλου του περιεχομένου, μεταφορά από το ένα μπιτόνι στο άλλο μέχρι να αδειάσει ή να γεμίσει.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="main-grid">
+        <div class="game-area">
+          <section class="panel card" aria-labelledby="game-title">
+            <h3 id="game-title">Ο χώρος του παιχνιδιού</h3>
+            <p>Παρατήρησε κάθε κατάσταση και σκέψου τι αλλάζει μετά από κάθε ενέργεια. Αυτό ακριβώς κάνει και ένας αλγόριθμος: μεταβαίνει από μια κατάσταση στην επόμενη.</p>
+
+            <div class="jugs">
+              <div class="jug-wrap">
+                <div class="jug-label">Μπιτόνι 5 λίτρων: <span id="fiveText">0</span>/5 L</div>
+                <div class="jug-visual" aria-label="Μπιτόνι 5 λίτρων">
+                  <div class="water five" id="fiveWater"><span id="fiveWaterLabel">0L</span></div>
+                </div>
+                <div class="jug-scale"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+              </div>
+              <div class="jug-wrap">
+                <div class="jug-label">Μπιτόνι 3 λίτρων: <span id="threeText">0</span>/3 L</div>
+                <div class="jug-visual" aria-label="Μπιτόνι 3 λίτρων">
+                  <div class="water three" id="threeWater"><span id="threeWaterLabel">0L</span></div>
+                </div>
+                <div class="jug-scale"><span>0</span><span>1</span><span>2</span><span>3</span></div>
+              </div>
+            </div>
+
+            <div class="action-grid" aria-label="Ενέργειες παιχνιδιού">
+              <button class="btn primary" data-action="fill5">Γέμισε το 5L</button>
+              <button class="btn primary" data-action="fill3">Γέμισε το 3L</button>
+              <button class="btn secondary" data-action="pour5to3">Μετέφερε 5L → 3L</button>
+              <button class="btn secondary" data-action="pour3to5">Μετέφερε 3L → 5L</button>
+              <button class="btn warning" data-action="empty5">Άδειασε το 5L</button>
+              <button class="btn warning" data-action="empty3">Άδειασε το 3L</button>
+              <button class="btn ghost" data-action="reset">Επανεκκίνηση</button>
+              <button class="btn success" data-action="solve">Δείξε μου τη λύση</button>
+            </div>
+
+            <div class="status" aria-label="Στοιχεία προόδου">
+              <div class="status-box"><span>Κινήσεις</span><strong id="movesText">0</strong></div>
+              <div class="status-box"><span>Κατάσταση</span><strong id="stateText">0, 0</strong></div>
+              <div class="status-box"><span>Στόχος</span><strong id="goalText">Δεν βρέθηκε ακόμη</strong></div>
+            </div>
+
+            <div class="message" id="messageBox">Ξεκίνα με μια κίνηση και παρατήρησε τι συμβαίνει στα δύο μπιτόνια.</div>
+          </section>
+        </div>
+
+        <aside class="side-area">
+          <section class="panel card">
+            <h3>Ιστορικό βημάτων</h3>
+            <p>Κάθε γραμμή δείχνει μια νέα κατάσταση του προβλήματος.</p>
+            <div class="steps" id="stepsList" aria-live="polite"></div>
+          </section>
+
+          <section class="panel card">
+            <h3>Σκέψου σαν προγραμματιστής</h3>
+            <p>Η επίλυση δεν είναι τύχη. Είναι έλεγχος καταστάσεων και επιλογή της κατάλληλης επόμενης ενέργειας.</p>
+            <div class="hint-list">
+              <div class="hint">Κάθε μπιτόνι έχει συγκεκριμένη χωρητικότητα, άρα δεν ξεπερνά ποτέ το όριό του.</div>
+              <div class="hint">Όταν μεταφέρεις νερό, σταματάς μόλις αδειάσει το ένα ή γεμίσει το άλλο.</div>
+              <div class="hint">Δοκίμασε να δημιουργήσεις πρώτα μια ενδιάμεση ποσότητα, όχι κατευθείαν το 1 λίτρο.</div>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <p class="footer-note">Το παιχνίδι είναι σχεδιασμένο για μαθητές 13-14 ετών, με έμφαση στη λογική, τη στρατηγική και την αλγοριθμική σκέψη.</p>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const state = { five: 0, three: 0, moves: 0, history: [] };
+      const solution = [
+        { action: 'fill5', note: 'Γέμισε το μπιτόνι των 5L.' },
+        { action: 'pour5to3', note: 'Μετάφερε νερό στο 3L μέχρι να γεμίσει.' },
+        { action: 'empty3', note: 'Άδειασε το 3L.' },
+        { action: 'pour5to3', note: 'Μετάφερε ό,τι έμεινε από το 5L στο 3L.' },
+        { action: 'fill5', note: 'Γέμισε ξανά το 5L.' },
+        { action: 'pour5to3', note: 'Συμπλήρωσε το 3L. Στο 5L μένει ακριβώς 4L.' },
+        { action: 'empty3', note: 'Άδειασε το 3L.' },
+        { action: 'pour5to3', note: 'Μετέφερε από το 5L στο 3L. Στο 5L μένει ακριβώς 1L.' }
+      ];
+
+      const els = {
+        fiveText: document.getElementById('fiveText'),
+        threeText: document.getElementById('threeText'),
+        fiveWater: document.getElementById('fiveWater'),
+        threeWater: document.getElementById('threeWater'),
+        fiveWaterLabel: document.getElementById('fiveWaterLabel'),
+        threeWaterLabel: document.getElementById('threeWaterLabel'),
+        movesText: document.getElementById('movesText'),
+        stateText: document.getElementById('stateText'),
+        goalText: document.getElementById('goalText'),
+        messageBox: document.getElementById('messageBox'),
+        stepsList: document.getElementById('stepsList'),
+        toggle: document.querySelector('[data-theme-toggle]')
+      };
+
+      function themeInit() {
+        let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        els.toggle.addEventListener('click', () => {
+          theme = theme === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          updateThemeIcon(theme);
+        });
+      }
+
+      function updateThemeIcon(theme) {
+        els.toggle.setAttribute('aria-label', theme === 'dark' ? 'Ενεργό σκοτεινό θέμα. Άλλαξε σε φωτεινό.' : 'Ενεργό φωτεινό θέμα. Άλλαξε σε σκοτεινό.');
+        els.toggle.innerHTML = theme === 'dark'
+          ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+          : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      }
+
+      function pushHistory(text) {
+        state.history.push({ text, five: state.five, three: state.three, moves: state.moves });
+        renderHistory();
+      }
+
+      function renderHistory() {
+        if (!state.history.length) {
+          els.stepsList.innerHTML = '<div class="step"><b>0</b>Αρχική κατάσταση: και τα δύο μπιτόνια είναι άδεια.<small>Κατάσταση: (0, 0)</small></div>';
+          return;
+        }
+        els.stepsList.innerHTML = state.history.map((item, index) => `
+          <div class="step">
+            <div><b>${index + 1}</b>${item.text}</div>
+            <small>Κατάσταση: (${item.five}, ${item.three}) • Κίνηση ${item.moves}</small>
+          </div>
+        `).join('');
+      }
+
+      function render() {
+        els.fiveText.textContent = state.five;
+        els.threeText.textContent = state.three;
+        els.fiveWaterLabel.textContent = `${state.five}L`;
+        els.threeWaterLabel.textContent = `${state.three}L`;
+        els.fiveWater.style.height = `${(state.five / 5) * 100}%`;
+        els.threeWater.style.height = `${(state.three / 3) * 100}%`;
+        els.movesText.textContent = state.moves;
+        els.stateText.textContent = `${state.five}, ${state.three}`;
+
+        const won = state.five === 1 || state.three === 1;
+        els.goalText.textContent = won ? 'Βρέθηκε το 1 λίτρο!' : 'Δεν βρέθηκε ακόμη';
+        els.messageBox.className = won ? 'message success' : 'message';
+        if (won) {
+          els.messageBox.textContent = `Μπράβο! Πέτυχες ακριβώς 1 λίτρο. Τελική κατάσταση: (${state.five}, ${state.three}).`;
+        }
+      }
+
+      function resetGame(message = 'Το παιχνίδι ξεκίνησε από την αρχή. Δοκίμασε μια νέα στρατηγική!') {
+        state.five = 0; state.three = 0; state.moves = 0; state.history = [];
+        els.messageBox.className = 'message';
+        els.messageBox.textContent = message;
+        render();
+        renderHistory();
+      }
+
+      function doAction(action, customMessage) {
+        let description = '';
+        switch (action) {
+          case 'fill5':
+            state.five = 5;
+            description = 'Γέμισες το μπιτόνι των 5L.';
+            break;
+          case 'fill3':
+            state.three = 3;
+            description = 'Γέμισες το μπιτόνι των 3L.';
+            break;
+          case 'empty5':
+            state.five = 0;
+            description = 'Άδειασες το μπιτόνι των 5L.';
+            break;
+          case 'empty3':
+            state.three = 0;
+            description = 'Άδειασες το μπιτόνι των 3L.';
+            break;
+          case 'pour5to3': {
+            const available = 3 - state.three;
+            const transfer = Math.min(state.five, available);
+            state.five -= transfer;
+            state.three += transfer;
+            description = `Μετέφερες ${transfer}L από το 5L στο 3L.`;
+            break;
+          }
+          case 'pour3to5': {
+            const available = 5 - state.five;
+            const transfer = Math.min(state.three, available);
+            state.three -= transfer;
+            state.five += transfer;
+            description = `Μετέφερες ${transfer}L από το 3L στο 5L.`;
+            break;
+          }
+          default:
+            return;
+        }
+        state.moves += 1;
+        pushHistory(customMessage || description);
+        if (!(state.five === 1 || state.three === 1)) {
+          els.messageBox.className = 'message';
+          els.messageBox.textContent = customMessage || description;
+        }
+        render();
+      }
+
+      async function playSolution() {
+        resetGame('Παρακολούθησε τη σωστή ακολουθία βημάτων.');
+        for (const step of solution) {
+          await new Promise(resolve => setTimeout(resolve, 700));
+          doAction(step.action, step.note);
+        }
+      }
+
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          if (action === 'reset') return resetGame();
+          if (action === 'solve') return playSolution();
+          doAction(action);
+        });
+      });
+
+      themeInit();
+      resetGame('Ξεκίνα με μια κίνηση και παρατήρησε τι συμβαίνει στα δύο μπιτόνια.');
+    })();
+  </script>
+</body>
+</html>
