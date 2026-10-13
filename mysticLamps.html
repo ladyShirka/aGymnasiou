@@ -1,0 +1,293 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Τα Μυστικά Φανάρια</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,700;0,900;1,700&family=Fira+Sans:wght@400;600;700&family=Fira+Code:wght@500;700&display=swap">
+<style>
+/* Layout: νυχτερινή σκηνή — ιστορία επάνω, καρτέλες επιπέδων, μία κονσόλα παιχνιδιού με σειρά από 5 κολοκύθες */
+:root{
+  --night:#130e1f; --panel:#1e1631; --panel2:#281e40; --line:#3b2f57;
+  --ink:#f4ead9; --muted:#b3a6c9; --pumpkin:#f27d1c; --pumpkin-d:#b8520c;
+  --candle:#ffd76e; --unlit:#3a3152; --unlit-d:#2a2340; --ok:#7fdc95; --bad:#ff7a7a;
+  --display:"Alegreya", Georgia, serif; --body:"Fira Sans", "Segoe UI", Arial, sans-serif; --mono:"Fira Code", Consolas, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  background-image:radial-gradient(circle at 85% -10%, #3a2a5c 0, transparent 45%);min-height:100vh}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:900;color:var(--candle)}
+h2{font-size:1.6rem;color:var(--candle)}
+h3{font-size:1.15rem}
+p{margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--pumpkin);font-weight:700}
+.story{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+.story p{max-width:64ch;color:var(--ink)}
+.story .em{color:var(--candle);font-weight:600}
+.moon{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 38% 38%,#fff6d8,#e9cf8a 60%,#b99a52);box-shadow:0 0 60px #ffd76e55}
+.score{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.9rem;color:var(--muted)}
+.chip b{color:var(--candle);font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font:600 .95rem var(--body);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+.tab:hover{color:var(--ink);border-color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--pumpkin);border-color:var(--pumpkin);color:#1b0f02}
+.tab .done{margin-left:6px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--candle);outline-offset:2px}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:18px}
+.lead{color:var(--muted);max-width:68ch}
+.row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;max-width:620px;width:100%;margin:0 auto}
+.pk{background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink);cursor:pointer;font:inherit}
+.pk[disabled]{cursor:default}
+.pk svg{width:100%;max-width:110px;height:auto;transition:filter .25s, transform .15s}
+.pk .body{fill:var(--unlit)} .pk .rib{fill:var(--unlit-d)} .pk .face{fill:var(--unlit-d)} .pk .stem{fill:#4d5a33}
+.pk.on .body{fill:var(--pumpkin)} .pk.on .rib{fill:var(--pumpkin-d)} .pk.on .face{fill:var(--candle)}
+.pk.on svg{filter:drop-shadow(0 0 14px #ff9b3dcc)}
+.pk:not([disabled]):hover svg{transform:translateY(-3px)}
+.val{font-family:var(--mono);font-weight:700;font-size:1.1rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pk.on .val{color:var(--candle)}
+.bit{font-family:var(--mono);font-size:.95rem;color:var(--muted)}
+.pk.on .bit{color:var(--ink)}
+.readout{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:stretch}
+.box{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 18px;text-align:center;min-width:140px}
+.box small{display:block;color:var(--muted);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
+.box .big{font-family:var(--mono);font-size:1.7rem;font-weight:700;color:var(--candle);font-variant-numeric:tabular-nums}
+.target{font-family:var(--display);font-size:1.25rem;text-align:center}
+.target b{font-family:var(--mono);font-size:2.4rem;color:var(--candle);display:block}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+.btn{font:700 1rem var(--body);border-radius:10px;padding:10px 18px;border:0;cursor:pointer;background:var(--pumpkin);color:#1b0f02}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:hover{filter:brightness(1.08)}
+input.num,input.txt{font:700 1.3rem var(--mono);background:var(--night);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:8px 12px;width:7ch;text-align:center}
+input.txt{width:min(100%,22ch);text-align:left;font-size:1.1rem}
+.fb{min-height:1.6em;text-align:center;font-weight:600}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.progress{display:flex;gap:6px;justify-content:center}
+.progress i{width:12px;height:12px;border-radius:50%;background:var(--unlit)}
+.progress i.ok{background:var(--pumpkin);box-shadow:0 0 8px #ff9b3d}
+.alpha{overflow-x:auto}
+.alpha table{border-collapse:collapse;margin:0 auto;font-variant-numeric:tabular-nums}
+.alpha td{border:1px solid var(--line);text-align:center;padding:3px 7px;min-width:34px}
+.alpha .n{font:500 .78rem var(--mono);color:var(--muted);background:var(--panel2)}
+.alpha .l{font:700 1.15rem var(--display);color:var(--ink)}
+.msg{display:flex;flex-direction:column;gap:6px}
+.mrow{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:10px;align-items:center;padding:4px 8px;border-radius:10px}
+.mrow:nth-child(odd){background:#ffffff06}
+.mrow .idx{font:500 .85rem var(--mono);color:var(--muted)}
+.mini{display:flex;gap:6px}
+.mini span{width:30px;height:30px}
+.mini svg{width:30px;height:30px}
+.mini .on .body{fill:var(--pumpkin)} .mini .on .rib{fill:var(--pumpkin-d)} .mini .on .face{fill:var(--candle)}
+.mini .off .body{fill:var(--unlit)} .mini .off .rib{fill:var(--unlit-d)} .mini .off .face{fill:var(--unlit-d)}
+.mini .stem{fill:#4d5a33}
+.mrow input{width:2.4em;font:700 1.1rem var(--display);text-align:center;background:var(--night);color:var(--ink);border:2px solid var(--line);border-radius:8px;padding:4px}
+.mrow input.ok{border-color:var(--ok);color:var(--ok)} .mrow input.bad{border-color:var(--bad)}
+.mrow .gap{font-size:.85rem;color:var(--muted);font-style:italic;grid-column:2/4}
+.reveal{font-family:var(--display);font-size:1.6rem;text-align:center;color:var(--candle);letter-spacing:.08em}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.note{border-left:3px solid var(--pumpkin);padding-left:12px;color:var(--muted);font-size:.95rem}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+summary{cursor:pointer;font-weight:700;color:var(--ink)}
+details ul{margin:10px 0 0;padding-left:20px;color:var(--muted)}
+details li{margin-bottom:6px}
+footer{font-size:.8rem;color:var(--muted);text-align:center}
+@media (max-width:560px){.story{grid-template-columns:1fr}.moon{display:none}.stage{padding:16px}.val{font-size:.95rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+
+<div class="wrap">
+  <header class="story">
+    <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+      <span class="eyebrow">Δυαδικό σύστημα · Νύχτα του Halloween</span>
+      <h1>Τα Μυστικά Φανάρια</h1>
+      <p>Η Δανάη μπήκε για πλάκα στο εγκαταλελειμμένο σπίτι του λόφου, μια βραδιά Halloween. Η πόρτα έκλεισε πίσω της και δεν ανοίγει! Το κινητό της δεν έχει σήμα. Στη σοφίτα βρίσκει <span class="em">πέντε κολοκύθες-φανάρια</span> και βλέπει απέναντι, στο σπίτι της, τον αδελφό της που λατρεύει την Πληροφορική. Ανάβοντας και σβήνοντας τα φανάρια, μπορεί να του στείλει μήνυμα με <span class="em">δυαδικό κώδικα</span>. Θα τη βοηθήσετε;</p>
+    </div>
+    <div class="moon" aria-hidden="true"></div>
+  </header>
+
+  <div class="score">
+    <span class="chip">🍬 Καραμέλες: <b id="candy">0</b></span>
+    <span class="chip">Επίπεδα που ολοκληρώθηκαν: <b id="doneCount">0</b>/5</span>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main class="stage" id="stage"></main>
+
+  <details>
+    <summary>Για τον/την εκπαιδευτικό</summary>
+    <ul>
+      <li><b>Στόχοι:</b> οι μαθητές/τριες εξηγούν πώς ένας 5-bit αριθμός αναπαριστά τιμές 0–31, μετατρέπουν από δεκαδικό σε δυαδικό και αντίστροφα, και κατανοούν ότι κείμενο μπορεί να κωδικοποιηθεί με αριθμούς.</li>
+      <li><b>Ροή (≈ 45΄):</b> Επ. 1 ανακάλυψη (5΄) → Επ. 2 & 3 εξάσκηση (15΄) → Επ. 4 αποκρυπτογράφηση μηνύματος (15΄) → Επ. 5 ανταλλαγή μηνυμάτων σε ζευγάρια (10΄).</li>
+      <li><b>Ερωτήσεις συζήτησης:</b> Γιατί κάθε κολοκύθα έχει διπλάσια τιμή από την επόμενη; Πόσα φανάρια θα χρειαζόταν η Δανάη για 64 διαφορετικά σύμβολα; Γιατί το 0 (όλα σβηστά) δεν είναι καλή ιδέα για γράμμα;</li>
+      <li><b>Unplugged επέκταση:</b> τυπώστε 5 κάρτες κολοκύθας (16, 8, 4, 2, 1) και ζητήστε από 5 μαθητές να «ανάβουν» σηκώνοντας την κάρτα.</li>
+    </ul>
+  </details>
+
+  <footer>Διασκευή της δραστηριότητας «Στέλνοντας μυστικά μηνύματα» του Computer Science Unplugged (csunplugged.org). Ευγενία Παπαδοπούλου, ΠΕ86 · CC BY-NC-SA 4.0</footer>
+</div>
+
+<script>
+const VALS=[16,8,4,2,1];
+const PK=`<svg viewBox="0 0 100 100" aria-hidden="true"><path class="stem" d="M47 8 q2 -4 7 -3 l-1 14 h-7z"/><ellipse class="body" cx="50" cy="58" rx="44" ry="36"/><ellipse class="rib" cx="50" cy="58" rx="14" ry="35" opacity=".55"/><ellipse class="body" cx="50" cy="58" rx="9" ry="34"/><path class="face" d="M27 46 l10 -12 l10 12z M53 46 l10 -12 l10 12z M44 60 l6 -8 l6 8z M22 66 q28 22 56 0 l-6 8 l-6 -4 l-6 6 l-6 -5 l-6 5 l-6 -6 l-6 4 l-6 -8z"/></svg>`;
+const ALPHA="ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ";
+const SECRET="ΒΟΗΘΕΙΑ ΣΤΗ ΣΟΦΙΤΑ";
+let candy=0; const done=new Set();
+const $=s=>document.querySelector(s);
+const toBits=n=>VALS.map(v=>(n&v)?1:0);
+const sum=b=>b.reduce((s,x,i)=>s+x*VALS[i],0);
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();
+const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function addCandy(n=1){candy+=n;$("#candy").textContent=candy}
+function complete(i){done.add(i);$("#doneCount").textContent=done.size;renderTabs()}
+
+function pumpkinRow(bits,{interactive=false,showVals=true,onChange}={}){
+  const row=document.createElement("div");row.className="row";
+  bits.forEach((b,i)=>{
+    const p=document.createElement("button");p.type="button";p.className="pk"+(b?" on":"");
+    p.disabled=!interactive;
+    p.setAttribute("aria-label",`Κολοκύθα αξίας ${VALS[i]}, ${b?"αναμμένη":"σβηστή"}`);
+    p.innerHTML=PK+
+      (showVals?`<span class="val">${VALS[i]}</span>`:"")+`<span class="bit">${b}</span>`;
+    if(interactive)p.onclick=()=>{bits[i]=bits[i]?0:1;p.classList.toggle("on",!!bits[i]);
+      p.querySelector(".bit").textContent=bits[i];
+      p.setAttribute("aria-label",`Κολοκύθα αξίας ${VALS[i]}, ${bits[i]?"αναμμένη":"σβηστή"}`);onChange&&onChange(bits)};
+    row.appendChild(p);
+  });
+  return row;
+}
+function mini(bits){
+  return `<div class="mini" aria-label="${bits.join("")}">`+bits.map(b=>`<span class="${b?"on":"off"}">${PK}</span>`).join("")+`</div>`;
+}
+function alphaTable(){
+  const half=[ALPHA.slice(0,12),ALPHA.slice(12)];
+  return `<div class="alpha"><table>`+half.map((h,k)=>`<tr>${[...h].map((c,i)=>`<td class="n">${k*12+i+1}</td>`).join("")}</tr><tr>${[...h].map(c=>`<td class="l">${c}</td>`).join("")}</tr>`).join("")+`</table></div>`;
+}
+function progress(n,total){return `<div class="progress">${Array.from({length:total},(_,i)=>`<i class="${i<n?"ok":""}"></i>`).join("")}</div>`}
+
+const LEVELS=[
+ {name:"Γνωριμία",render:level1},
+ {name:"Άναψε τον αριθμό",render:level2},
+ {name:"Διάβασε τα φανάρια",render:level3},
+ {name:"Το μυστικό μήνυμα",render:level4},
+ {name:"Στείλε το δικό σου",render:level5},
+];
+let current=0;
+function renderTabs(){
+  $("#tabs").innerHTML=LEVELS.map((l,i)=>`<button class="tab" role="tab" aria-selected="${i===current}" data-i="${i}">${i+1}. ${l.name}${done.has(i)?'<span class="done">✓</span>':""}</button>`).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(b=>b.onclick=()=>{current=+b.dataset.i;renderTabs();LEVELS[current].render($("#stage"))});
+}
+
+/* Επίπεδο 1 */
+function level1(st){
+  const bits=[0,0,0,0,0];
+  st.innerHTML=`<h2>Γνωρίστε τις κολοκύθες</h2>
+  <p class="lead">Κάθε κολοκύθα έχει μια τιμή. Πάτησε πάνω τους για να τις ανάψεις ή να τις σβήσεις. Αναμμένη κολοκύθα = <b>1</b>, σβηστή = <b>0</b>. Ο αριθμός που στέλνεις είναι το άθροισμα των αναμμένων.</p>
+  <div id="r"></div>
+  <div class="readout"><div class="box"><small>Δυαδικό</small><span class="big" id="bin">00000</span></div><div class="box"><small>Δεκαδικό</small><span class="big" id="dec">0</span></div></div>
+  <div class="twocol">
+   <div class="note">Παρατήρησε τις τιμές 16, 8, 4, 2, 1. Τι σχέση έχει κάθε τιμή με την επόμενη;</div>
+   <div class="note">Μπορείς να φτιάξεις κάθε αριθμό από το 0 ως το μεγαλύτερο; Με πόσους τρόπους;</div>
+  </div>
+  <div class="actions"><label for="q1">Ποιος είναι ο μεγαλύτερος αριθμός που μπορεί να στείλει η Δανάη;</label><input class="num" id="q1" inputmode="numeric"><button class="btn" id="c1">Έλεγχος</button></div>
+  <p class="fb" id="fb"></p>`;
+  const upd=b=>{$("#bin").textContent=b.join("");$("#dec").textContent=sum(b)};
+  $("#r").replaceWith(pumpkinRow(bits,{interactive:true,onChange:upd}));
+  $("#c1").onclick=()=>{const v=+$("#q1").value,fb=$("#fb");
+    if(v===31){fb.className="fb ok";fb.textContent="Σωστά! 16+8+4+2+1 = 31. Μαζί με το 0, έχουμε 32 διαφορετικούς αριθμούς.";if(!done.has(0)){addCandy(3);complete(0)}}
+    else{fb.className="fb bad";fb.textContent="Όχι ακριβώς. Δοκίμασε να ανάψεις όλες τις κολοκύθες.";}};
+}
+
+/* Επίπεδο 2: δεκαδικό → δυαδικό */
+function level2(st){
+  const TOTAL=5;let n=0,target=rand(1,31),bits=[0,0,0,0,0];
+  function draw(){
+    st.innerHTML=`<h2>Άναψε τον αριθμό</h2>
+    <p class="lead">Ο αδελφός της Δανάης ζητά έναν αριθμό. Άναψε τις σωστές κολοκύθες ώστε το άθροισμά τους να είναι ίσο με τον στόχο. <i>Συμβουλή: ξεκίνα από τη μεγαλύτερη κολοκύθα.</i></p>
+    ${progress(n,TOTAL)}
+    <div class="target">Στόχος<b>${target}</b></div>
+    <div id="r"></div>
+    <div class="actions"><button class="btn" id="chk">Στείλε το σήμα</button><button class="btn ghost" id="clr">Σβήσε όλα</button></div>
+    <p class="fb" id="fb"></p>`;
+    $("#r").replaceWith(pumpkinRow(bits,{interactive:true}));
+    $("#clr").onclick=()=>{bits=[0,0,0,0,0];draw()};
+    $("#chk").onclick=()=>{const s=sum(bits),fb=$("#fb");
+      if(s===target){addCandy();n++;fb.className="fb ok";fb.textContent=`Τέλεια! ${target} = ${bits.join("")} στο δυαδικό.`;
+        setTimeout(()=>{if(n>=TOTAL){complete(1);st.innerHTML=`<h2>Μπράβο!</h2><p class="reveal">Έστειλες ${TOTAL} αριθμούς σωστά 🎃</p><div class="actions"><button class="btn" id="again">Ξανά</button></div>`;$("#again").onclick=()=>level2(st)}else{target=rand(1,31);bits=[0,0,0,0,0];draw()}},1300)}
+      else{fb.className="fb bad";fb.textContent=s<target?`Το άθροισμα είναι ${s}. Σου λείπουν ${target-s}.`:`Το άθροισμα είναι ${s}. Είναι ${s-target} παραπάνω.`}};
+  }
+  draw();
+}
+
+/* Επίπεδο 3: δυαδικό → δεκαδικό */
+function level3(st){
+  const TOTAL=5;let n=0,num=rand(1,31),showVals=true;
+  function draw(){
+    st.innerHTML=`<h2>Διάβασε τα φανάρια</h2>
+    <p class="lead">Τώρα ο αδελφός απαντά με τα δικά του φανάρια! Ποιον αριθμό στέλνει;</p>
+    ${progress(n,TOTAL)}
+    <div id="r"></div>
+    <div class="actions"><label for="ans">Ο αριθμός είναι:</label><input class="num" id="ans" inputmode="numeric" autocomplete="off"><button class="btn" id="chk">Έλεγχος</button>
+    <button class="btn ghost" id="tog">${showVals?"Κρύψε τις τιμές (δύσκολο)":"Δείξε τις τιμές"}</button></div>
+    <p class="fb" id="fb"></p>`;
+    $("#r").replaceWith(pumpkinRow(toBits(num),{showVals}));
+    $("#tog").onclick=()=>{showVals=!showVals;draw()};
+    const go=()=>{const v=+$("#ans").value,fb=$("#fb");
+      if(v===num){addCandy(showVals?1:2);n++;fb.className="fb ok";fb.textContent=`Σωστά! ${toBits(num).join("")} = ${num}`;
+        setTimeout(()=>{if(n>=TOTAL){complete(2);st.innerHTML=`<h2>Μπράβο!</h2><p class="reveal">Διάβασες ${TOTAL} σήματα σωστά 🦇</p><div class="actions"><button class="btn" id="again">Ξανά</button></div>`;$("#again").onclick=()=>level3(st)}else{num=rand(1,31);draw()}},1300)}
+      else{fb.className="fb bad";fb.textContent="Όχι ακόμα. Πρόσθεσε μόνο τις τιμές των αναμμένων κολοκυθών."}};
+    $("#chk").onclick=go;$("#ans").onkeydown=e=>{if(e.key==="Enter")go()};$("#ans").focus();
+  }
+  draw();
+}
+
+/* Επίπεδο 4: αποκρυπτογράφηση */
+function level4(st){
+  const letters=[...SECRET];
+  let html=`<h2>Το μυστικό μήνυμα</h2>
+  <p class="lead">Η Δανάη ανάβει και σβήνει τα φανάρια ξανά και ξανά. Κάθε γραμμή είναι ένας αριθμός, και κάθε αριθμός ένα γράμμα του πίνακα. Όταν όλα τα φανάρια σβήσουν, σημαίνει κενό ανάμεσα σε λέξεις. Γράψε το γράμμα κάθε γραμμής.</p>
+  ${alphaTable()}
+  <p class="note">Οι τιμές από αριστερά προς τα δεξιά: 16 · 8 · 4 · 2 · 1</p>
+  <div class="msg">`;
+  let k=0;
+  letters.forEach((c,i)=>{
+    if(c===" "){html+=`<div class="mrow"><span class="idx">${i+1}</span>${mini([0,0,0,0,0])}<span class="gap" style="grid-column:auto">κενό</span></div>`;return}
+    html+=`<div class="mrow"><span class="idx">${i+1}</span>${mini(toBits(ALPHA.indexOf(c)+1))}<input maxlength="1" data-k="${k++}" data-c="${c}" aria-label="Γράμμα γραμμής ${i+1}" autocomplete="off"></div>`;
+  });
+  html+=`</div><div class="actions"><button class="btn" id="chk">Έλεγχος μηνύματος</button></div><p class="fb" id="fb"></p><p class="reveal" id="rev"></p>`;
+  st.innerHTML=html;
+  const ins=[...st.querySelectorAll(".mrow input")];
+  ins.forEach((inp,i)=>inp.oninput=()=>{inp.value=norm(inp.value);inp.className="";if(inp.value&&ins[i+1])ins[i+1].focus()});
+  $("#chk").onclick=()=>{let ok=0;ins.forEach(inp=>{const r=inp.value===inp.dataset.c;inp.className=inp.value?(r?"ok":"bad"):"";if(r)ok++});
+    const fb=$("#fb");
+    if(ok===ins.length){fb.className="fb ok";fb.textContent="Το μήνυμα αποκρυπτογραφήθηκε! Ο αδελφός τρέχει να τη σώσει.";$("#rev").textContent=SECRET;if(!done.has(3)){addCandy(5);complete(3)}}
+    else{fb.className="fb bad";fb.textContent=`Σωστά γράμματα: ${ok} από ${ins.length}. Τα κόκκινα θέλουν διόρθωση.`}};
+}
+
+/* Επίπεδο 5: κωδικοποίηση */
+function level5(st){
+  st.innerHTML=`<h2>Στείλε το δικό σου μήνυμα</h2>
+  <p class="lead">Σειρά σου! Γράψε μια σύντομη λέξη (π.χ. το όνομά σου) και δες πώς θα τη στέλνανε τα φανάρια. Μετά κρύψε τα γράμματα και δώσε την οθόνη στον διπλανό σου να την αποκρυπτογραφήσει.</p>
+  <div class="actions"><label for="w">Μήνυμα:</label><input class="txt" id="w" maxlength="16" value="ΚΟΛΟΚΥΘΑ" autocomplete="off"><button class="btn ghost" id="hide">Κρύψε τα γράμματα</button></div>
+  <div class="msg" id="out"></div>
+  <div class="note">Πρόκληση: μπορείς να κωδικοποιήσεις μια λέξη με τον δικό σου πίνακα; Τι πρέπει να ξέρει ο παραλήπτης για να τη διαβάσει;</div>`;
+  let hidden=false;
+  const draw=()=>{
+    const w=norm($("#w").value).replace(/Σ/g,"Σ");
+    $("#out").innerHTML=[...w].map((c,i)=>{
+      if(c===" ")return `<div class="mrow"><span class="idx">${i+1}</span>${mini([0,0,0,0,0])}<span class="gap" style="grid-column:auto">κενό</span></div>`;
+      const p=ALPHA.indexOf(c);
+      if(p<0)return `<div class="mrow"><span class="idx">${i+1}</span><span class="gap" style="grid-column:auto">«${c}» δεν υπάρχει στον πίνακα</span><span></span></div>`;
+      return `<div class="mrow"><span class="idx">${i+1}</span>${mini(toBits(p+1))}<span class="bit" style="font-family:var(--mono)">${hidden?"?":`${toBits(p+1).join("")} = ${p+1} = <b style="color:var(--candle);font-family:var(--display);font-size:1.1rem">${c}</b>`}</span></div>`;
+    }).join("");
+    if(!done.has(4)&&w.replace(/[^Α-Ω]/g,"").length>=3&&w!=="ΚΟΛΟΚΥΘΑ"){addCandy(2);complete(4)}
+  };
+  $("#w").oninput=draw;
+  $("#hide").onclick=()=>{hidden=!hidden;$("#hide").textContent=hidden?"Δείξε τα γράμματα":"Κρύψε τα γράμματα";draw()};
+  draw();
+}
+
+renderTabs();level1($("#stage"));
+</script>
+
+</body></html>
