@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ενότητα 2 – Το υλικό του Υπολογιστή</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --yellow: #fbbf24;
+      --orange: #f97316;
+      --orange-light: #ffedd5;
+      --bg: #f0f7ff;
+      --white: #ffffff;
+      --text: #1e293b;
+      --text-soft: #64748b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text);
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 10% 20%, #ddd6fe55 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, #bfdbfe55 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, #bbf7d055 0%, transparent 60%);
+      z-index: 0;
+      animation: bgShift 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgShift {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.05) rotate(1deg); }
+    }
+
+    /* Floating shapes */
+    .shape {
+      position: fixed;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float 6s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .shape-1 { width: 120px; height: 120px; background: var(--purple); top: 5%; left: 3%; }
+    .shape-2 { width: 80px; height: 80px; background: var(--blue); top: 20%; right: 5%; animation-delay: 1.5s; border-radius: 30% 70% 70% 30%/30% 30% 70% 70%; }
+    .shape-3 { width: 60px; height: 60px; background: var(--orange); bottom: 15%; left: 8%; animation-delay: 3s; border-radius: 10px; }
+    .shape-4 { width: 100px; height: 100px; background: var(--green); bottom: 10%; right: 7%; animation-delay: 4.5s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Top navigation */
+    .top-nav {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.2rem 1.5rem 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--white);
+      color: var(--purple);
+      font-weight: 800;
+      font-size: 0.9rem;
+      text-decoration: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 50px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), gap 0.25s;
+    }
+    .back-link:hover { transform: translateX(-4px); gap: 0.7rem; }
+
+    /* Header */
+    header {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 1.5rem 1rem 1rem;
+    }
+
+    .header-icon {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 1rem;
+      border-radius: 24px;
+      background: var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      box-shadow: 0 6px 20px rgba(124,58,237,0.18);
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: var(--yellow);
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.3rem 1rem;
+      border-radius: 50px;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 2px 8px rgba(251,191,36,0.4);
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+    }
+
+    h1.site-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.15;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+    }
+    h1.site-title .accent { color: var(--purple); }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-soft);
+      font-weight: 600;
+      margin-top: 0.6rem;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+    }
+
+    /* Learning goals box */
+    .goals {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 1.5rem auto 0;
+      padding: 0 1.5rem;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+    }
+
+    .goals-inner {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 1.5rem 1.8rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      border-left: 6px solid var(--purple);
+    }
+
+    .goals h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.25rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .goals ul {
+      list-style: none;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .goals li {
+      font-weight: 600;
+      color: var(--text-soft);
+      padding-left: 1.6rem;
+      position: relative;
+      line-height: 1.5;
+    }
+    .goals li::before {
+      content: '✔';
+      position: absolute;
+      left: 0;
+      color: var(--purple);
+      font-weight: 800;
+    }
+
+    /* Section heading */
+    .section-heading {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 2.5rem auto 0;
+      padding: 0 1.5rem;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Activities grid */
+    .activities-grid {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 1.2rem auto 3rem;
+      padding: 0 1.5rem;
+    }
+
+    /* Activity card */
+    .activity-card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 2.2rem 1.8rem;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+      animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s both;
+    }
+
+    .activity-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+    }
+
+    .activity-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.06);
+    }
+
+    /* Colour themes — change the class on each card */
+    .theme-purple::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+    .theme-blue::before   { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .theme-green::before  { background: linear-gradient(90deg, #16a34a, #4ade80); }
+    .theme-orange::before { background: linear-gradient(90deg, #ea580c, #fb923c); }
+
+    .theme-purple { --c: var(--purple); --c-light: var(--purple-light); }
+    .theme-blue   { --c: var(--blue);   --c-light: var(--blue-light); }
+    .theme-green  { --c: var(--green);  --c-light: var(--green-light); }
+    .theme-orange { --c: var(--orange); --c-light: var(--orange-light); }
+
+    .card-bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.08;
+      right: -30px;
+      bottom: -30px;
+      width: 170px;
+      height: 170px;
+      background: var(--c);
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    .activity-card:hover .card-bg-circle { transform: scale(1.3); opacity: 0.12; }
+
+    .card-number {
+      position: absolute;
+      top: 1.1rem;
+      right: 1.4rem;
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.8rem;
+      opacity: 0.07;
+      line-height: 1;
+    }
+
+    .card-icon {
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.1rem;
+      background: var(--c-light);
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .activity-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      border-radius: 50px;
+      margin-bottom: 0.7rem;
+      background: var(--c-light);
+      color: var(--c);
+    }
+
+    .card-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      line-height: 1.6;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .meta-chip {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      background: #f8fafc;
+      color: var(--text-soft);
+      border: 2px solid #e2e8f0;
+    }
+
+    .card-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1.4rem;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--c);
+      position: relative;
+      z-index: 1;
+      transition: gap 0.3s ease;
+    }
+    .activity-card:hover .card-cta { gap: 0.7rem; }
+
+    .cta-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--c);
+      color: white;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .activity-card:hover .cta-arrow { transform: translateX(4px) scale(1.1); }
+
+    /* "Coming soon" placeholder card */
+    .coming-soon {
+      border-radius: 24px;
+      border: 3px dashed #cbd5e1;
+      padding: 2.2rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-soft);
+      font-weight: 700;
+      min-height: 260px;
+      background: rgba(255,255,255,0.5);
+      animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s both;
+    }
+    .coming-soon .cs-icon { font-size: 2.4rem; margin-bottom: 0.6rem; opacity: 0.6; }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 20px;
+      color: #00008B;
+      border-top: 1px solid #eee;
+      margin-top: 40px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .goals-inner { padding: 1.2rem 1.2rem; }
+      .activities-grid { gap: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background shapes -->
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+  <div class="shape shape-3"></div>
+  <div class="shape shape-4"></div>
+
+  <!-- Back to home -->
+  <nav class="top-nav">
+    <a href="index.html" class="back-link">← Αρχική σελίδα</a>
+  </nav>
+
+  <!-- Header -->
+  <header>
+    <div class="header-icon">🖥️</div>
+    <div class="header-badge">Ενότητα 2</div>
+    <h1 class="site-title">Το υλικό του <span class="accent">Υπολογιστή</span></h1>
+    <p class="subtitle">Οι περιφερειακές μονάδες</p>
+  </header>
+
+  <!-- Learning goals -->
+  <section class="goals">
+    <div class="goals-inner">
+      <h2>🎯 Τι θα μάθω σε αυτή την ενότητα</h2>
+      <ul>
+        <li>Να αναγνωρίζω τις μονάδες εισόδου ενός υπολογιστή.</li>
+        <li>Να αναγνωρίζω τις μονάδες εξόδου ενός υπολογιστή.</li>
+        <li>Να διακρίνω τις μονάδες που κάνουν και τα δύο (εισόδου/εξόδου).</li>
+        <li>Να γνωρίσω τα είδη υπολογιστών.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Activities -->
+  <h2 class="section-heading">🧩 Δραστηριότητες</h2>
+
+  <div class="activities-grid">
+
+    <!-- Δραστηριότητα 1 -->
+    <a href="peripherals_2.html" class="activity-card theme-purple">
+      <div class="card-bg-circle"></div>
+      <div class="card-number">1</div>
+      <div class="card-icon">⌨️</div>
+      <div class="card-tag">Δραστηριότητα 1</div>
+      <h3 class="card-title">Περιφερειακές μονάδες</h3>
+      <p class="card-desc">Γνώρισε τις μονάδες εισόδου και εξόδου του υπολογιστή!</p>
+      <div class="card-meta">
+        <span class="meta-chip">⌨️ Είσοδος</span>
+        <span class="meta-chip">🖨️ Έξοδος</span>
+        <span class="meta-chip">🎮 Διαδραστικό</span>
+      </div>
+      <div class="card-cta">
+        Ξεκίνα <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+    <!--
+    ==========================================================
+    ΠΡΟΤΥΠΟ ΝΕΑΣ ΔΡΑΣΤΗΡΙΟΤΗΤΑΣ
+    Αντιγράψτε το παρακάτω μπλοκ πάνω από την κάρτα
+    «Έρχονται σύντομα» και αλλάξτε:
+      • href          → το αρχείο της δραστηριότητας
+      • theme-...     → theme-purple / theme-blue / theme-green / theme-orange
+      • αριθμό, εικονίδιο, τίτλο, περιγραφή, chips
+    ==========================================================
+
+    <a href="ONOMA_ARXEIOU.html" class="activity-card theme-blue">
+      <div class="card-bg-circle"></div>
+      <div class="card-number">2</div>
+      <div class="card-icon">🖱️</div>
+      <div class="card-tag">Δραστηριότητα 2</div>
+      <h3 class="card-title">Τίτλος δραστηριότητας</h3>
+      <p class="card-desc">Σύντομη περιγραφή της δραστηριότητας.</p>
+      <div class="card-meta">
+        <span class="meta-chip">🧠 Κουίζ</span>
+        <span class="meta-chip">⏱️ 10 λεπτά</span>
+      </div>
+      <div class="card-cta">
+        Ξεκίνα <span class="cta-arrow">→</span>
+      </div>
+    </a>
+    -->
+
+    <!-- Κάρτα «Έρχονται σύντομα» — διαγράψτε την όταν δεν τη χρειάζεστε -->
+    <div class="coming-soon">
+      <div class="cs-icon">🚧</div>
+      Έρχονται σύντομα κι άλλες δραστηριότητες!
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Δημιουργία © 2026 <strong>Ευγενία Παπαδοπούλου</strong>, ΠΕ86<br>
+      Αυτό το έργο διατίθεται με την άδεια <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>
+    </p>
+  </footer>
+
+</body>
+</html>

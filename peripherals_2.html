@@ -1,0 +1,156 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Οι συσκευές του υπολογιστή</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Commissioner:wght@400;500;600&display=swap">
+<style>
+/* Layout: an explorer, tiles of devices on a workbench + a sticky info panel; stacks on phone */
+:root{
+  --bg:#eef2f7; --surface:#ffffff; --ink:#1b2433; --muted:#5a6578; --line:#d5dce7;
+  --accent:#2952a3; --accent-soft:#e3eafa; --done:#c98a12; --done-soft:#fbf0d9;
+  --display:"Comfortaa","Commissioner",system-ui,sans-serif;
+  --body:"Commissioner","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121822; --surface:#1b2330; --ink:#e7ecf4; --muted:#9aa6b8; --line:#2c3748;
+  --accent:#8fb0f2; --accent-soft:#22314d; --done:#e8b44a; --done-soft:#3a2f17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121822; --surface:#1b2330; --ink:#e7ecf4; --muted:#9aa6b8; --line:#2c3748;
+  --accent:#8fb0f2; --accent-soft:#22314d; --done:#e8b44a; --done-soft:#3a2f17; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+h1{font-family:var(--display);font-size:clamp(1.6rem,4vw,2.3rem);margin:0;text-wrap:balance;line-height:1.2}
+.progress{min-width:0;flex:0 1 280px}
+.progress-label{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted);margin-bottom:6px;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--done);border-radius:999px;transition:width .35s ease}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{position:relative;display:grid;justify-items:center;gap:8px;padding:18px 10px 14px;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:14px;cursor:pointer;color:var(--ink);font:inherit;
+  transition:transform .15s ease,border-color .15s ease,background .15s ease}
+.tile:hover{transform:translateY(-2px);border-color:var(--accent)}
+.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tile svg{width:64px;height:64px;color:var(--accent)}
+.tile .q{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--muted)}
+.tile.seen .q{color:var(--ink);font-family:var(--body);font-weight:600;font-size:.95rem;text-align:center}
+.tile.seen{background:var(--done-soft);border-color:var(--done)}
+.tile.seen svg{color:var(--done)}
+.tile.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.check{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--done);color:var(--surface);
+  display:grid;place-items:center;font-size:.8rem;font-weight:700}
+.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);background:var(--surface);border:1.5px solid var(--line);
+  border-radius:16px;padding:22px;display:grid;gap:14px;min-width:0}
+.panel .big{display:grid;place-items:center;background:var(--accent-soft);border-radius:12px;padding:18px}
+.panel .big svg{width:120px;height:120px;color:var(--accent)}
+.panel h2{font-family:var(--display);font-size:1.5rem;margin:0;line-height:1.25;text-wrap:balance}
+.panel .en{font-size:.85rem;color:var(--muted);margin-top:2px}
+.panel h3{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 4px}
+.panel p{margin:0}
+.nav{display:flex;gap:8px;flex-wrap:wrap}
+button.btn{font:inherit;font-weight:600;font-size:.9rem;padding:8px 14px;border-radius:10px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hint{color:var(--muted);font-size:.95rem}
+.done-msg{background:var(--done-soft);border:1.5px solid var(--done);border-radius:12px;padding:12px 14px;font-weight:500}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.panel{position:static;order:-1}}
+@media (max-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:420px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Πληροφορική Γυμνασίου · Υλικό (hardware)</p>
+      <h1>Οι συσκευές του υπολογιστή</h1>
+    </div>
+    <div class="progress" aria-live="polite">
+      <div class="progress-label"><span>Εξερεύνησες</span><span id="count">0 / 12</span></div>
+      <div class="bar"><span id="fill"></span></div>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="grid" id="grid" role="list"></div>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </div>
+</div>
+
+<script>
+const S='fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+const ICONS={
+scanner:`<svg viewBox="0 0 64 64" ${S}><rect x="6" y="30" width="52" height="18" rx="4"/><path d="M8 30 L14 16 H54 L58 30"/><path d="M14 39 H50" stroke-dasharray="4 3"/><circle cx="51" cy="44" r="1.5" fill="currentColor"/></svg>`,
+speakers:`<svg viewBox="0 0 64 64" ${S}><rect x="6" y="12" width="20" height="40" rx="3"/><circle cx="16" cy="38" r="7"/><circle cx="16" cy="21" r="3"/><rect x="38" y="12" width="20" height="40" rx="3"/><circle cx="48" cy="38" r="7"/><circle cx="48" cy="21" r="3"/></svg>`,
+stylus:`<svg viewBox="0 0 64 64" ${S}><rect x="6" y="14" width="40" height="40" rx="4"/><path d="M14 44 C20 34 26 40 32 30"/><path d="M56 6 L36 34 L33 41 L39 37 L59 9 Z"/></svg>`,
+mic:`<svg viewBox="0 0 64 64" ${S}><rect x="24" y="6" width="16" height="30" rx="8"/><path d="M16 30 C16 42 48 42 48 30"/><path d="M32 41 V52 M22 56 H42"/><path d="M24 16 H30 M24 23 H30"/></svg>`,
+monitor:`<svg viewBox="0 0 64 64" ${S}><rect x="5" y="9" width="54" height="36" rx="3"/><path d="M27 45 L25 55 H39 L37 45"/><path d="M20 55 H44"/></svg>`,
+gamepad:`<svg viewBox="0 0 64 64" ${S}><path d="M16 20 H48 C56 20 60 30 60 40 C60 48 54 50 49 44 L44 38 H20 L15 44 C10 50 4 48 4 40 C4 30 8 20 16 20 Z"/><path d="M17 26 V36 M12 31 H22"/><circle cx="44" cy="28" r="2" fill="currentColor"/><circle cx="50" cy="33" r="2" fill="currentColor"/></svg>`,
+keyboard:`<svg viewBox="0 0 64 64" ${S}><rect x="4" y="18" width="56" height="30" rx="4"/><path d="M11 26 H13 M19 26 H21 M27 26 H29 M35 26 H37 M43 26 H45 M51 26 H53 M11 33 H13 M19 33 H21 M27 33 H29 M35 33 H37 M43 33 H45 M51 33 H53 M18 40 H46"/></svg>`,
+touch:`<svg viewBox="0 0 64 64" ${S}><rect x="14" y="4" width="30" height="54" rx="5"/><path d="M26 9 H32"/><circle cx="29" cy="28" r="5"/><circle cx="29" cy="28" r="10" stroke-dasharray="3 4"/><path d="M36 60 V40 C36 37 40 37 40 40 V48 M40 44 C40 41 44 41 44 44 V48 M44 46 C44 43 48 43 48 46 V54 C48 58 46 60 44 62"/></svg>`,
+barcode:`<svg viewBox="0 0 64 64" ${S}><path d="M8 10 H40 C46 10 48 14 46 20 L44 26 H30 L26 54 H16 L20 26 H12 C8 26 6 22 6 18 V12 C6 11 7 10 8 10 Z"/><path d="M48 14 L58 10 M48 20 L60 20 M48 26 L58 30" stroke-dasharray="2 3"/><path d="M34 40 V58 M38 40 V58 M43 40 V58 M46 40 V58 M51 40 V58 M56 40 V58" stroke-width="2"/></svg>`,
+camera:`<svg viewBox="0 0 64 64" ${S}><rect x="4" y="20" width="38" height="28" rx="4"/><path d="M42 30 L58 22 V46 L42 38"/><circle cx="14" cy="28" r="2.5" fill="currentColor"/><path d="M10 20 V14 H22 V20"/></svg>`,
+printer:`<svg viewBox="0 0 64 64" ${S}><path d="M18 22 V6 H46 V22"/><rect x="6" y="22" width="52" height="24" rx="4"/><path d="M18 38 H46 V58 H18 Z"/><path d="M24 46 H40 M24 51 H36"/><circle cx="49" cy="30" r="2" fill="currentColor"/></svg>`,
+mouse:`<svg viewBox="0 0 64 64" ${S}><rect x="18" y="12" width="28" height="44" rx="14"/><path d="M32 12 V28 M18 28 H46"/><path d="M32 12 C32 6 40 4 44 6"/></svg>`
+};
+const DEVICES=[
+{id:"gamepad",name:"Χειριστήριο",en:"Game controller",what:"Το κρατάς με τα δύο χέρια. Με τους μοχλούς και τα κουμπιά του λες στο παιχνίδι πού να πάει και τι να κάνει ο χαρακτήρας σου.",where:"Σε κονσόλες παιχνιδιών, αλλά και συνδεδεμένο σε υπολογιστή."},
+{id:"printer",name:"Εκτυπωτής",en:"Printer",what:"Παίρνει ένα έγγραφο ή μια εικόνα από τον υπολογιστή και το τυπώνει με μελάνι ή τόνερ σε χαρτί.",where:"Στο σχολείο, στο γραφείο, σε πολλά σπίτια."},
+{id:"stylus",name:"Στυλό γραφίδα",en:"Stylus",what:"Έχει σχήμα στυλό. Με αυτό ζωγραφίζεις ή γράφεις με το χέρι σε ειδική επιφάνεια ή σε οθόνη tablet και ο υπολογιστής καταγράφει κάθε γραμμή.",where:"Σε γραφίστες, σχεδιαστές και σε μαθητές που κρατούν σημειώσεις σε tablet."},
+{id:"mic",name:"Μικρόφωνο",en:"Microphone",what:"Πιάνει τον ήχο, π.χ. τη φωνή σου, και τον μετατρέπει σε ψηφιακά δεδομένα που ο υπολογιστής μπορεί να αποθηκεύσει ή να στείλει.",where:"Σε βιντεοκλήσεις, ηχογραφήσεις, φωνητικούς βοηθούς."},
+{id:"touch",name:"Οθόνη αφής",en:"Touchscreen",what:"Σου δείχνει εικόνες, κείμενα και βίντεο, και ταυτόχρονα καταλαβαίνει πού την αγγίζεις με το δάχτυλο, ώστε να δίνεις εντολές πάνω της.",where:"Σε κινητά, tablet, μηχανήματα ΑΤΜ και διαδραστικούς πίνακες."},
+{id:"keyboard",name:"Πληκτρολόγιο",en:"Keyboard",what:"Έχει πλήκτρα με γράμματα, αριθμούς και σύμβολα. Κάθε φορά που πατάς ένα πλήκτρο, ο υπολογιστής ξέρει ποιο χαρακτήρα ή ποια εντολή θέλεις.",where:"Σε κάθε υπολογιστή γραφείου και φορητό."},
+{id:"speakers",name:"Ηχεία",en:"Speakers",what:"Μετατρέπουν τα ψηφιακά δεδομένα ήχου σε ήχο που ακούμε: μουσική, ομιλίες, ήχους παιχνιδιών.",where:"Δίπλα στην οθόνη, μέσα σε φορητούς υπολογιστές και κινητά."},
+{id:"barcode",name:"Barcode reader",en:"Αναγνώστης γραμμωτού κώδικα",what:"Ρίχνει φως στις μαύρες και λευκές γραμμές (barcode) ενός προϊόντος, τις «διαβάζει» και στέλνει στον υπολογιστή τον κωδικό του.",where:"Στα ταμεία των σούπερ μάρκετ, στις βιβλιοθήκες, στις αποθήκες."},
+{id:"monitor",name:"Οθόνη",en:"Monitor",what:"Παρουσιάζει όσα κάνει ο υπολογιστής: το κείμενο που γράφεις, τις εικόνες, τα βίντεο, τα παράθυρα των προγραμμάτων.",where:"Σε κάθε υπολογιστή γραφείου. Στον φορητό είναι ενσωματωμένη."},
+{id:"scanner",name:"Σαρωτής",en:"Scanner",what:"Ένα φως περνά αργά κάτω από το χαρτί ή τη φωτογραφία που βάζεις πάνω του και τη μετατρέπει σε ψηφιακή εικόνα στον υπολογιστή.",where:"Σε γραφεία, γραμματείες σχολείων, συχνά μαζί με εκτυπωτή σε ένα μηχάνημα."},
+{id:"mouse",name:"Ποντίκι",en:"Mouse",what:"Όταν το μετακινείς στο γραφείο, ο δείκτης στην οθόνη κινείται μαζί του. Με τα κουμπιά του κάνεις κλικ για να επιλέξεις ή να ανοίξεις κάτι.",where:"Δίπλα στο πληκτρολόγιο. Στον φορητό τη θέση του παίρνει η επιφάνεια αφής (touchpad)."},
+{id:"camera",name:"Βιντεοκάμερα",en:"Video camera / Webcam",what:"Καταγράφει εικόνα σε κίνηση. Ο υπολογιστής μπορεί να την αποθηκεύσει ως βίντεο ή να τη στείλει ζωντανά σε άλλους.",where:"Πάνω από την οθόνη του φορητού (κάμερα web), σε βιντεοκλήσεις και μαθήματα από απόσταση."}
+];
+const seen=new Set(); let current=null;
+const grid=document.getElementById('grid'), panel=document.getElementById('panel');
+
+function renderGrid(){
+  grid.innerHTML='';
+  DEVICES.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='tile'+(seen.has(d.id)?' seen':'')+(current===i?' active':'');
+    b.setAttribute('role','listitem');
+    b.id='tile-'+d.id;
+    b.setAttribute('aria-label',seen.has(d.id)?d.name:'Άγνωστη συσκευή '+(i+1));
+    b.innerHTML=ICONS[d.id]+`<span class="q">${seen.has(d.id)?d.name:'?'}</span>`+(seen.has(d.id)?'<span class="check" aria-hidden="true">✓</span>':'');
+    b.onclick=()=>show(i,true);
+    grid.appendChild(b);
+  });
+  const n=seen.size;
+  document.getElementById('count').textContent=n+' / 12';
+  document.getElementById('fill').style.width=(n/12*100)+'%';
+}
+function renderIntro(){
+  panel.innerHTML=`<div><h3>Πώς παίζεται</h3><h2>Ποια συσκευή είναι;</h2></div>
+  <p>Ο υπολογιστής επικοινωνεί μαζί μας μέσα από διάφορες συσκευές. Όλες είναι <strong>υλικό (hardware)</strong>: φυσικά μέρη του υπολογιστή που μπορούμε να τα αγγίξουμε.</p>
+  <p class="hint">Πάτα σε κάθε κάρτα με το «?» για να μάθεις ποια συσκευή είναι και τι κάνει. Άνοιξε και τις 12.</p>`;
+}
+function show(i,scroll){
+  current=i; const d=DEVICES[i]; seen.add(d.id);
+  const all=seen.size===12;
+  panel.innerHTML=`<div class="big" aria-hidden="true">${ICONS[d.id]}</div>
+  <div><h2>${d.name}</h2><div class="en">${d.en}</div></div>
+  <div><h3>Τι κάνει</h3><p>${d.what}</p></div>
+  <div><h3>Πού χρησιμοποιείται</h3><p>${d.where}</p></div>
+  ${all?'<div class="done-msg">Μπράβο! Εξερεύνησες και τις 12 συσκευές. Γύρνα στο φύλλο εργασίας σου.</div>':''}
+  <div class="nav"><button class="btn" id="prev">← Προηγούμενη</button><button class="btn" id="next">Επόμενη →</button>${all?'<button class="btn" id="reset">Από την αρχή</button>':''}</div>`;
+  document.getElementById('prev').onclick=()=>show((i+11)%12,false);
+  document.getElementById('next').onclick=()=>show((i+1)%12,false);
+  const r=document.getElementById('reset'); if(r) r.onclick=()=>{seen.clear();current=null;renderGrid();renderIntro();};
+  renderGrid();
+  if(scroll && window.matchMedia('(max-width:900px)').matches) panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+renderGrid(); renderIntro();
+</script>
+
+</body></html>
