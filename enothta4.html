@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Η Διαδρομή μιας Εντολής</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;
+  --bg:#f6f4ee; --card:#ffffff; --ink:#1f2433; --muted:#5d6475; --line:#e3dfd3;
+  --user:#e8930c; --user-bg:#fff4e0;
+  --shell:#0f9d76; --shell-bg:#e2f6ef;
+  --kernel:#d9433b; --kernel-bg:#fde8e6;
+  --hw:#2f6fd6; --hw-bg:#e5eefc;
+  --app:#8a4fd3; --app-bg:#f1e9fc;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans",system-ui,sans-serif;font-size:16px;line-height:1.5}
+h1,h2,h3{font-family:"Comfortaa","Noto Sans",sans-serif;margin:0}
+button{font-family:inherit;font-size:inherit;cursor:pointer;color:var(--ink)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+header h1{font-size:clamp(1.5rem,3.4vw,2.2rem)}
+header p{margin:4px 0 0;color:var(--muted)}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 18px}
+nav.tabs button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;font-weight:600;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+section.view{display:none}
+section.view.on{display:block}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+
+/* ---------- controls ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.scen{display:flex;gap:6px;flex-wrap:wrap}
+.scen button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 12px;font-weight:600}
+.scen button.on{border-color:var(--user);background:var(--user-bg)}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--ink);color:#fff}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.crash{display:flex;align-items:center;gap:8px;margin-left:auto;font-weight:600;padding:8px 12px;border-radius:12px;border:2px dashed var(--kernel);color:var(--kernel);background:#fff}
+.crash input{width:20px;height:20px;accent-color:var(--kernel)}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid;grid-template-columns:1fr 70px 1fr 70px 1fr 70px 1.35fr;align-items:center;gap:0}
+.node{position:relative;border-radius:var(--radius);padding:14px 12px;text-align:center;border:3px solid transparent;background:#fff;transition:transform .3s, box-shadow .3s, opacity .3s;opacity:.55}
+.node .ic{font-size:2.3rem;line-height:1}
+.node h3{font-size:1rem;margin-top:6px}
+.node small{display:block;color:var(--muted);font-size:.78rem}
+.node.user{border-color:var(--user);background:var(--user-bg)}
+.node.shell{border-color:var(--shell);background:var(--shell-bg)}
+.node.kernel{border-color:var(--kernel);background:var(--kernel-bg)}
+.node.done{opacity:.85}
+.node.active{opacity:1;transform:scale(1.06);box-shadow:0 10px 28px rgba(0,0,0,.14)}
+.node.kernel.dead{filter:grayscale(1);opacity:.6;transform:rotate(-6deg)}
+.node.kernel.dead .ic::after{content:" 💥"}
+.tag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:.68rem;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.hwbox{border:3px solid var(--hw);background:var(--hw-bg);border-radius:var(--radius);padding:22px 10px 10px;position:relative;opacity:.7;transition:opacity .3s}
+.hwbox.on{opacity:1}
+.hwbox .tag{background:var(--hw)}
+.hwgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hw{background:#fff;border-radius:12px;padding:8px 6px;text-align:center;border:2px solid transparent;transition:all .3s;opacity:.55}
+.hw .ic{font-size:1.6rem}
+.hw b{display:block;font-size:.82rem}
+.hw.done{opacity:.85}
+.hw.active{opacity:1;border-color:var(--hw);transform:scale(1.07);box-shadow:0 6px 16px rgba(47,111,214,.25)}
+.hw.unused{opacity:.25}
+.hw.sleep::after{content:"😴";display:block;font-size:.9rem}
+.hw.active .ic{animation:wiggle .5s ease-in-out infinite}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+.arrow{position:relative;height:40px}
+.arrow::before{content:"";position:absolute;left:6px;right:10px;top:50%;height:4px;margin-top:-2px;background:repeating-linear-gradient(90deg,#c9c3b3 0 8px,transparent 8px 14px);border-radius:2px}
+.arrow::after{content:"";position:absolute;right:2px;top:50%;margin-top:-8px;border:8px solid transparent;border-left:10px solid #c9c3b3}
+.arrow.go::before{background:repeating-linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 14px);background-size:28px 4px;animation:flow .6s linear infinite}
+.arrow.go::after{border-left-color:var(--ink)}
+.arrow.back::before{animation-direction:reverse}
+@keyframes flow{to{background-position:28px 0}}
+.packet{position:absolute;top:50%;font-size:1.4rem;transform:translate(-50%,-55%);left:10%;opacity:0;pointer-events:none}
+.arrow.go .packet{animation:travel 1.1s ease-in-out forwards}
+.arrow.back .packet{animation:travelback 1.1s ease-in-out forwards}
+@keyframes travel{0%{left:5%;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:90%;opacity:0}}
+@keyframes travelback{0%{left:90%;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:5%;opacity:0}}
+
+/* ---------- stage below ---------- */
+.stage{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:20px}
+.bubble{border-radius:var(--radius);padding:18px;border:3px solid var(--line);background:#fff;min-height:220px;position:relative}
+.bubble .who{display:flex;align-items:center;gap:10px;font-weight:700;font-family:"Comfortaa",sans-serif;font-size:1.1rem}
+.bubble .who .ic{font-size:2rem}
+.bubble .say{font-size:1.15rem;font-weight:600;margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bg);position:relative}
+.bubble .explain{color:var(--muted);font-size:.95rem}
+.bubble .explain b{color:var(--ink)}
+.bubble.user{border-color:var(--user)} .bubble.user .say{background:var(--user-bg)}
+.bubble.shell{border-color:var(--shell)} .bubble.shell .say{background:var(--shell-bg)}
+.bubble.kernel{border-color:var(--kernel)} .bubble.kernel .say{background:var(--kernel-bg)}
+.bubble.hwb{border-color:var(--hw)} .bubble.hwb .say{background:var(--hw-bg)}
+.dots{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.dots span{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dots span.done{background:var(--ink)}
+.dots span.now{background:var(--user);transform:scale(1.3)}
+.navrow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+
+.monitor{background:#2b2f3a;border-radius:18px;padding:12px 12px 26px;position:relative}
+.monitor::after{content:"";position:absolute;bottom:-18px;left:50%;width:90px;height:18px;margin-left:-45px;background:#2b2f3a;clip-path:polygon(18% 0,82% 0,100% 100%,0 100%)}
+.screen{background:linear-gradient(160deg,#6aa9ff,#a77bf2);border-radius:10px;height:230px;position:relative;overflow:hidden;color:#fff}
+.desk{display:flex;gap:14px;padding:14px;flex-wrap:wrap}
+.dicon{width:64px;text-align:center;font-size:.72rem;border-radius:8px;padding:4px;transition:background .2s}
+.dicon .ic{font-size:1.8rem;display:block}
+.dicon.hl{background:rgba(255,255,255,.35);outline:2px solid #fff}
+.win{position:absolute;left:8%;right:8%;top:12%;bottom:10%;background:#fff;color:var(--ink);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.3);transform:scale(.3);opacity:0;transition:all .45s cubic-bezier(.2,1.4,.4,1)}
+.win.on{transform:scale(1);opacity:1}
+.win .bar{background:#eceae4;border-radius:8px 8px 0 0;padding:4px 8px;font-size:.75rem;font-weight:700;display:flex;gap:6px;align-items:center}
+.win .bar i{width:9px;height:9px;border-radius:50%;background:#e66;display:inline-block}
+.win .bar i:nth-child(2){background:#eb5}.win .bar i:nth-child(3){background:#5c6}
+.win .body{padding:10px;font-size:.9rem}
+.photos{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.photos div{aspect-ratio:1;border-radius:6px;display:grid;place-items:center;font-size:1.6rem;background:#eef3ff}
+.bsod{position:absolute;inset:0;background:#1c2a4a;color:#cfe;display:none;place-items:center;text-align:center;padding:16px;font-size:.95rem}
+.bsod.on{display:grid}
+.cursor{position:absolute;font-size:1.3rem;left:60%;top:70%;transition:all .7s ease;pointer-events:none}
+
+.why{margin-top:16px;border:3px dashed var(--kernel);background:#fff;border-radius:var(--radius);padding:16px;display:none}
+.why.on{display:block}
+.why h3{color:var(--kernel);font-size:1.1rem}
+.why .ans{display:none;margin-top:10px;background:var(--kernel-bg);padding:12px;border-radius:12px;font-weight:600}
+.why .ans.on{display:block}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:.88rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+
+/* ---------- layers ---------- */
+.layers{display:grid;grid-template-columns:minmax(260px,440px) 1fr;gap:22px;align-items:center}
+.layers svg{width:100%;height:auto}
+.layers svg .ring{cursor:pointer;transition:opacity .2s}
+.layers svg .ring:hover{opacity:.85}
+.layers svg text{font-family:"Comfortaa",sans-serif;font-weight:700;pointer-events:none}
+.layers svg .ring.sel circle{stroke:#1f2433;stroke-width:5}
+.linfo{border-radius:var(--radius);padding:18px;border:3px solid var(--line);background:#fff;min-height:260px}
+.linfo h3{font-size:1.3rem;margin-bottom:8px}
+.linfo ul{margin:8px 0 0;padding-left:20px}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;margin:3px 4px 3px 0;font-size:.85rem;font-weight:600}
+
+/* ---------- games ---------- */
+.gamegrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.tiles{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.tile{border:3px solid var(--line);background:#fff;border-radius:14px;padding:10px 14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.tile.placed{opacity:.3;pointer-events:none}
+.slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:56px;padding:10px;border:2px dashed var(--line);border-radius:14px;background:var(--bg)}
+.slot{padding:8px 12px;border-radius:12px;background:#fff;font-weight:700;border:2px solid var(--line)}
+.slot.bad{border-color:var(--kernel);background:var(--kernel-bg);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.msg{margin-top:10px;font-weight:600;min-height:1.5em}
+.msg.ok{color:var(--shell)} .msg.no{color:var(--kernel)}
+
+.quiz .q{font-size:1.1rem;font-weight:700;margin:6px 0 12px}
+.quiz .opts{display:grid;gap:8px}
+.quiz .opts button{text-align:left;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-weight:600}
+.quiz .opts button.right{border-color:var(--shell);background:var(--shell-bg)}
+.quiz .opts button.wrong{border-color:var(--kernel);background:var(--kernel-bg)}
+.quiz .fb{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--bg);display:none}
+.quiz .fb.on{display:block}
+.qhead{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem}
+.score{font-size:1.6rem;font-family:"Comfortaa",sans-serif;font-weight:700;text-align:center;margin:20px 0}
+
+/* ---------- teacher ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:12px 0 18px}
+.rcard{border-radius:14px;padding:14px;border:3px solid;background:#fff}
+.rcard h3{font-size:1rem;margin-bottom:6px}
+.rcard p{margin:4px 0;font-size:.92rem}
+.rcard .n{font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:999px;color:#fff;display:inline-block;margin-bottom:6px}
+ol.steps li{margin-bottom:8px}
+
+footer{margin-top:28px;color:var(--muted);font-size:.82rem;text-align:center}
+
+@media (max-width:860px){
+  .pipe{grid-template-columns:1fr;gap:0}
+  .arrow{height:42px;width:40px;margin:0 auto}
+  .arrow::before{left:50%;right:auto;top:4px;bottom:12px;height:auto;width:4px;margin:0 0 0 -2px;background:repeating-linear-gradient(180deg,#c9c3b3 0 8px,transparent 8px 14px)}
+  .arrow.go::before{background:repeating-linear-gradient(180deg,var(--ink) 0 8px,transparent 8px 14px);background-size:4px 28px;animation:flowv .6s linear infinite}
+  .arrow.back::before{animation-direction:reverse}
+  @keyframes flowv{to{background-position:0 28px}}
+  .arrow::after{right:auto;left:50%;top:auto;bottom:0;margin:0 0 0 -8px;border:8px solid transparent;border-top:10px solid #c9c3b3}
+  .arrow.go::after{border-top-color:var(--ink);border-left-color:transparent}
+  .packet{left:50% !important;top:0}
+  .arrow.go .packet{animation:travelv 1.1s ease-in-out forwards}
+  .arrow.back .packet{animation:travelvb 1.1s ease-in-out forwards}
+  @keyframes travelv{0%{top:0;opacity:0}20%{opacity:1}100%{top:100%;opacity:0}}
+  @keyframes travelvb{0%{top:100%;opacity:0}20%{opacity:1}100%{top:0;opacity:0}}
+  .hwgrid{grid-template-columns:repeat(3,1fr)}
+  .stage,.layers,.gamegrid{grid-template-columns:1fr}
+  .crash{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>🚀 Η Διαδρομή μιας Εντολής</h1>
+    <p>Πώς συνεργάζονται ο Χρήστης, το Λογισμικό (Φλοιός &amp; Πυρήνας) και το Υλικό όταν κάνεις ένα κλικ</p>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-view="sim" aria-selected="true">▶️ Προσομοίωση</button>
+  <button role="tab" data-view="layers" aria-selected="false">🧅 Τα στρώματα</button>
+  <button role="tab" data-view="games" aria-selected="false">🎮 Παίξε &amp; μάθε</button>
+  <button role="tab" data-view="teacher" aria-selected="false">🎭 Παιχνίδι ρόλων (εκπαιδευτικός)</button>
+</nav>
+
+<!-- ================= SIMULATION ================= -->
+<section class="view on" id="v-sim">
+  <div class="panel">
+    <div class="controls">
+      <strong>Διάλεξε εντολή:</strong>
+      <div class="scen" id="scen"></div>
+      <label class="crash"><input type="checkbox" id="crash"> 💥 Ο Πυρήνας «κράσαρε»</label>
+    </div>
+
+    <div class="pipe" id="pipe">
+      <div class="node user" data-n="user"><span class="tag">Άνθρωπος</span><div class="ic">🧑‍💻</div><h3>Χρήστης</h3><small>δίνει την εντολή</small></div>
+      <div class="arrow" data-a="1"><span class="packet">✉️</span></div>
+      <div class="node shell" data-n="shell"><span class="tag" style="background:var(--shell)">Λογισμικό</span><div class="ic">🖱️</div><h3>Φλοιός</h3><small>GUI / εικονίδια · η «βιτρίνα»</small></div>
+      <div class="arrow" data-a="2"><span class="packet">✉️</span></div>
+      <div class="node kernel" data-n="kernel"><span class="tag" style="background:var(--kernel)">Λειτουργικό Σύστημα</span><div class="ic">❤️</div><h3>Πυρήνας</h3><small>Kernel · η «καρδιά»</small></div>
+      <div class="arrow" data-a="3"><span class="packet">✉️</span></div>
+      <div class="hwbox" id="hwbox"><span class="tag">Υλικό · Hardware</span>
+        <div class="hwgrid">
+          <div class="hw" data-h="disk"><div class="ic">💽</div><b>Σκληρός Δίσκος</b></div>
+          <div class="hw" data-h="ram"><div class="ic">🧠</div><b>Μνήμη RAM</b></div>
+          <div class="hw" data-h="cpu"><div class="ic">⚙️</div><b>Επεξεργαστής</b></div>
+          <div class="hw" data-h="screen"><div class="ic">🖥️</div><b>Οθόνη</b></div>
+          <div class="hw" data-h="spk"><div class="ic">🔊</div><b>Ηχεία</b></div>
+          <div class="hw" data-h="kbd"><div class="ic">⌨️</div><b>Πληκτρολόγιο / Ποντίκι</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div>
+        <div class="bubble" id="bubble">
+          <div class="who"><span class="ic">👋</span><span>Καλώς ήρθες!</span></div>
+          <div class="say">Διάλεξε μια εντολή και πάτα «Ξεκίνα» για να δεις ποιος μιλάει σε ποιον.</div>
+          <div class="explain">Κάθε βήμα είναι ένα «μήνυμα» που περνάει από το ένα μέρος του υπολογιστή στο επόμενο.</div>
+        </div>
+        <div class="dots" id="dots"></div>
+        <div class="navrow">
+          <button class="btn ghost" id="prev">◀ Πίσω</button>
+          <button class="btn" id="next">Ξεκίνα ▶</button>
+          <button class="btn ghost" id="auto">⏯ Αυτόματα</button>
+          <button class="btn ghost" id="reset">↺ Από την αρχή</button>
+        </div>
+      </div>
+      <div>
+        <div class="monitor">
+          <div class="screen" id="screen">
+            <div class="desk">
+              <div class="dicon" data-d="photos"><span class="ic">🖼️</span>Φωτογραφίες</div>
+              <div class="dicon" data-d="music"><span class="ic">🎵</span>Μουσική</div>
+              <div class="dicon" data-d="doc"><span class="ic">📝</span>Εργασία.docx</div>
+              <div class="dicon" data-d="trash"><span class="ic">🗑️</span>Κάδος</div>
+            </div>
+            <div class="win" id="win"><div class="bar"><i></i><i></i><i></i><span id="wtitle">Παράθυρο</span></div><div class="body" id="wbody"></div></div>
+            <div class="bsod" id="bsod"><div><div style="font-size:2rem">😵</div>Κανείς δεν δίνει εντολές στο υλικό…<br><small>Η οθόνη δεν αλλάζει.</small></div></div>
+            <div class="cursor" id="cursor">🖱️</div>
+          </div>
+        </div>
+        <p style="text-align:center;color:var(--muted);font-size:.85rem;margin-top:26px">Τι βλέπει ο χρήστης στην οθόνη του</p>
+      </div>
+    </div>
+
+    <div class="why" id="why">
+      <h3>🤔 Γιατί δεν δουλεύει ο υπολογιστής; Το Υλικό είναι εκεί!</h3>
+      <p>Συζητήστε στην τάξη πριν δείτε την απάντηση.</p>
+      <button class="btn" id="showAns">Δείξε την απάντηση</button>
+      <div class="ans" id="ans">Γιατί το Λογισμικό (ο Πυρήνας) λείπει και δεν υπάρχει κανείς να δώσει εντολές στο Υλικό. Ο Φλοιός δεν μπορεί να μιλήσει απευθείας στο Υλικό: μόνο ο Πυρήνας μπορεί. Χωρίς λογισμικό, το υλικό είναι απλώς «σίδερα» που περιμένουν.</div>
+    </div>
+
+    <div class="legend">
+      <span style="--c:var(--user)">Χρήστης</span>
+      <span style="--c:var(--shell)">Φλοιός (λογισμικό)</span>
+      <span style="--c:var(--kernel)">Πυρήνας (λειτουργικό σύστημα)</span>
+      <span style="--c:var(--hw)">Υλικό</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYERS ================= -->
+<section class="view" id="v-layers">
+  <div class="panel">
+    <h2 style="font-size:1.3rem;margin-bottom:6px">Ο υπολογιστής σαν κρεμμύδι 🧅</h2>
+    <p style="color:var(--muted);margin-top:0">Πάτησε σε κάθε στρώμα. Κάθε στρώμα μιλάει μόνο με το διπλανό του: ο χρήστης φτάνει στο υλικό περνώντας από όλα τα ενδιάμεσα.</p>
+    <div class="layers">
+      <svg viewBox="0 0 400 400" id="onion" aria-label="Στρώματα του υπολογιστή">
+        <g class="ring" data-l="apps"><circle cx="200" cy="200" r="190" fill="#f1e9fc" stroke="#8a4fd3" stroke-width="3"/></g>
+        <g class="ring" data-l="shell"><circle cx="200" cy="200" r="140" fill="#e2f6ef" stroke="#0f9d76" stroke-width="3"/></g>
+        <g class="ring" data-l="kernel"><circle cx="200" cy="200" r="92" fill="#fde8e6" stroke="#d9433b" stroke-width="3"/></g>
+        <g class="ring" data-l="hw"><circle cx="200" cy="200" r="46" fill="#e5eefc" stroke="#2f6fd6" stroke-width="3"/></g>
+        <text x="200" y="38" text-anchor="middle" font-size="17" fill="#8a4fd3">Εφαρμογές</text>
+        <text x="200" y="88" text-anchor="middle" font-size="17" fill="#0f9d76">Φλοιός</text>
+        <text x="200" y="138" text-anchor="middle" font-size="17" fill="#d9433b">Πυρήνας</text>
+        <text x="200" y="198" text-anchor="middle" font-size="15" fill="#2f6fd6">Υλικό</text>
+        <text x="200" y="218" text-anchor="middle" font-size="18">💽🧠</text>
+        <text x="200" y="370" text-anchor="middle" font-size="22">🎨 🎵 🌐 📝</text>
+      </svg>
+      <div class="linfo" id="linfo">
+        <h3>👆 Διάλεξε ένα στρώμα</h3>
+        <p>Από έξω προς τα μέσα: <span class="chip" style="background:var(--app-bg)">Εφαρμογές</span><span class="chip" style="background:var(--shell-bg)">Φλοιός</span><span class="chip" style="background:var(--kernel-bg)">Πυρήνας</span><span class="chip" style="background:var(--hw-bg)">Υλικό</span></p>
+        <p>Ο <b>Φλοιός</b> και ο <b>Πυρήνας</b> μαζί είναι το <b>Λειτουργικό Σύστημα</b>. Ο Πυρήνας είναι στην καρδιά του, ακριβώς πάνω από το υλικό.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GAMES ================= -->
+<section class="view" id="v-games">
+  <div class="gamegrid">
+    <div class="panel">
+      <h2 style="font-size:1.2rem">🧩 Βάλε τη διαδρομή στη σειρά</h2>
+      <p style="color:var(--muted);margin:6px 0 0">Πάτα τα κουτάκια με τη σειρά που ταξιδεύει η εντολή.</p>
+      <div class="tiles" id="tiles"></div>
+      <div class="slots" id="slots"><span style="color:var(--muted)">Η διαδρομή σου θα φανεί εδώ…</span></div>
+      <div class="msg" id="omsg"></div>
+      <button class="btn ghost" id="oreset" style="margin-top:8px">↺ Ξανά</button>
+
+      <h2 style="font-size:1.2rem;margin-top:26px">🗣️ Ποιος το είπε;</h2>
+      <div id="whobox">
+        <div class="qhead" id="whohead" style="margin-top:6px"></div>
+        <p style="color:var(--muted);margin:6px 0 10px" id="whoq"></p>
+        <div class="tiles" id="whoopts"></div>
+        <div class="msg" id="whomsg"></div>
+      </div>
+    </div>
+
+    <div class="panel quiz" id="quiz"></div>
+  </div>
+</section>
+
+<!-- ================= TEACHER ================= -->
+<section class="view" id="v-teacher">
+  <div class="panel">
+    <h2 style="font-size:1.3rem">🎭 Παιχνίδι ρόλων στην τάξη (5–10 λεπτά)</h2>
+    <p style="color:var(--muted)">Οι κάρτες ρόλων για 13 μαθητές. Η προσομοίωση μπορεί να προβληθεί πριν ή μετά το «ζωντανό» παιχνίδι.</p>
+    <div class="cards">
+      <div class="rcard" style="border-color:var(--user)"><span class="n" style="background:var(--user)">1 μαθητής</span><h3>🧑‍💻 Ο ΧΡΗΣΤΗΣ</h3><p><b>Ρόλος:</b> ο άνθρωπος μπροστά στον υπολογιστή.</p><p><b>Αποστολή:</b> θέλει να δει τις φωτογραφίες από τις διακοπές των Χριστουγέννων.</p><p><b>Λέει στον Φλοιό:</b> «Θέλω να ανοίξεις τον φάκελο με τις Φωτογραφίες!»</p></div>
+      <div class="rcard" style="border-color:var(--shell)"><span class="n" style="background:var(--shell)">2 μαθητές</span><h3>🖱️ Ο ΦΛΟΙΟΣ (GUI)</h3><p><b>Ρόλος:</b> η «βιτρίνα» του λογισμικού.</p><p><b>Αποστολή:</b> καταλαβαίνει τι θέλει ο χρήστης και το λέει στον Πυρήνα.</p><p><b>Λέει:</b> «Πυρήνα, ο χρήστης έκανε διπλό κλικ στο εικονίδιο των φωτογραφιών. Βρες τα δεδομένα!»</p></div>
+      <div class="rcard" style="border-color:var(--kernel)"><span class="n" style="background:var(--kernel)">2 μαθητές</span><h3>❤️ Ο ΠΥΡΗΝΑΣ (Kernel)</h3><p><b>Ρόλος:</b> η «καρδιά» του Λειτουργικού Συστήματος.</p><p><b>Αποστολή:</b> διαχειρίζεται το υλικό· μόνο αυτός μιλάει στο hardware.</p><p><b>Λέει:</b> «Σκληρέ Δίσκο, βρες τα αρχεία! Μνήμη RAM, ετοιμάσου να τα αποθηκεύσεις! Οθόνη, ετοιμάσου να δείξεις χρώματα!»</p></div>
+      <div class="rcard" style="border-color:var(--hw)"><span class="n" style="background:var(--hw)">8 μαθητές</span><h3>🔧 ΤΟ ΥΛΙΚΟ (Hardware)</h3><p>💽 <b>Α &amp; Β, Σκληρός Δίσκος:</b> ψάχνουν στα χαρτιά τους τη «φωτογραφία».</p><p>🧠 <b>Γ &amp; Δ, RAM:</b> χέρια ψηλά = «φορτώνουμε».</p><p>🖥️ <b>Ε &amp; ΣΤ, Οθόνη:</b> σχηματίζουν κάδρο με τα χέρια.</p><p>⚙️ <b>Ζ &amp; Η, Επεξεργαστής:</b> γρήγορες κινήσεις «σαν να σκέφτονται».</p></div>
+    </div>
+    <h3 style="font-size:1.1rem">Συντονισμός</h3>
+    <ol class="steps">
+      <li><b>Τοποθέτηση:</b> οι μαθητές στη σειρά Χρήστης → Φλοιός → Πυρήνας → Υλικό.</li>
+      <li><b>Η ροή:</b> ο Χρήστης δίνει την εντολή · ο Φλοιός μεταφράζει (από εικονίδιο σε εντολή συστήματος) · ο Πυρήνας δίνει τις τεχνικές οδηγίες · το Υλικό «κουνιέται» και εκτελεί.</li>
+      <li><b>Το μάθημα:</b> ζητήστε από τον Πυρήνα να καθίσει κάτω (σαν να «κράσαρε») και από τον Χρήστη να ξαναδώσει την εντολή. Ρωτήστε: «Γιατί δεν δουλεύει ο υπολογιστής; Το Υλικό είναι εκεί!» Στην προσομοίωση, ενεργοποιήστε το κουτάκι <b>💥 Ο Πυρήνας «κράσαρε»</b> για να δείξετε το ίδιο.</li>
+      <li><b>Σύνδεση με το βιβλίο (σελ. 2):</b> δείξτε το σχήμα με τα στρώματα (καρτέλα «Τα στρώματα»). Θα το καταλάβουν αμέσως, γιατί μόλις το «έπαιξαν»!</li>
+    </ol>
+  </div>
+</section>
+
+<footer>Ευγενία Παπαδοπούλου, ΠΕ86 · Πληροφορική Α΄ Γυμνασίου · Άδεια CC BY-NC-SA 4.0</footer>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const ACT = {
+  user:{name:"Χρήστης",ic:"🧑‍💻",cls:"user"},
+  shell:{name:"Φλοιός (GUI)",ic:"🖱️",cls:"shell"},
+  kernel:{name:"Πυρήνας (Kernel)",ic:"❤️",cls:"kernel"},
+  disk:{name:"Σκληρός Δίσκος",ic:"💽",cls:"hwb"},
+  ram:{name:"Μνήμη RAM",ic:"🧠",cls:"hwb"},
+  cpu:{name:"Επεξεργαστής",ic:"⚙️",cls:"hwb"},
+  screen:{name:"Οθόνη",ic:"🖥️",cls:"hwb"},
+  spk:{name:"Ηχεία",ic:"🔊",cls:"hwb"},
+  kbd:{name:"Πληκτρολόγιο / Ποντίκι",ic:"⌨️",cls:"hwb"}
+};
+const HW = ["disk","ram","cpu","screen","spk","kbd"];
+
+const SCEN = {
+  photos:{
+    label:"🖼️ Άνοιξε τις φωτογραφίες", icon:"photos", uses:["kbd","disk","ram","cpu","screen"],
+    steps:[
+      {a:"user",arrow:1,say:"Θέλω να ανοίξεις τον φάκελο με τις Φωτογραφίες!",ex:"Ο χρήστης θέλει να δει τις φωτογραφίες από τις διακοπές των Χριστουγέννων. Κάνει <b>διπλό κλικ</b> στο εικονίδιο.",fx:"click"},
+      {a:"shell",arrow:2,say:"Πυρήνα, ο χρήστης έκανε διπλό κλικ στο εικονίδιο των φωτογραφιών. Βρες τα δεδομένα!",ex:"Ο Φλοιός είναι η «βιτρίνα». <b>Μεταφράζει</b> το κλικ σε εντολή που καταλαβαίνει το σύστημα. Δεν μπορεί όμως να πιάσει μόνος του το υλικό!"},
+      {a:"kernel",arrow:3,say:"Σκληρέ Δίσκο, βρες τα αρχεία! Μνήμη RAM, ετοιμάσου να τα αποθηκεύσεις! Οθόνη, ετοιμάσου να δείξεις χρώματα!",ex:"Ο Πυρήνας είναι η «καρδιά» του Λειτουργικού Συστήματος. <b>Μόνο αυτός</b> μπορεί να δώσει εντολές στο υλικό."},
+      {a:"disk",say:"Ψάχνω στα αρχεία μου… Βρήκα τις φωτογραφίες!",ex:"Ο σκληρός δίσκος κρατάει τα αρχεία <b>μόνιμα</b>, ακόμα κι όταν ο υπολογιστής είναι κλειστός."},
+      {a:"ram",say:"Φορτώνω τις φωτογραφίες! (χέρια ψηλά 🙌)",ex:"Η RAM είναι η <b>γρήγορη, προσωρινή</b> μνήμη. Ό,τι δουλεύουμε τώρα «ανεβαίνει» εδώ από τον δίσκο."},
+      {a:"cpu",say:"Επεξεργάζομαι την εντολή… μετατρέπω τα δεδομένα σε εικόνες!",ex:"Ο επεξεργαστής <b>εκτελεί</b> τις εντολές, πάρα πολύ γρήγορα."},
+      {a:"screen",say:"Σχηματίζω το παράθυρο και δείχνω τα χρώματα! 🖼️",ex:"Η οθόνη είναι συσκευή <b>εξόδου</b>: δείχνει το αποτέλεσμα στον χρήστη.",fx:"photos"},
+      {a:"user",arrow:"back",say:"Τέλεια! Βλέπω τις φωτογραφίες μου! 🎄",ex:"Η εντολή ταξίδεψε <b>Χρήστης → Φλοιός → Πυρήνας → Υλικό</b> και το αποτέλεσμα γύρισε πίσω στον χρήστη. Όλα αυτά σε κλάσματα του δευτερολέπτου!"}
+    ]},
+  music:{
+    label:"🎵 Παίξε ένα τραγούδι", icon:"music", uses:["kbd","disk","ram","cpu","screen","spk"],
+    steps:[
+      {a:"user",arrow:1,say:"Θέλω να ακούσω το αγαπημένο μου τραγούδι!",ex:"Ο χρήστης πατάει ▶ στο τραγούδι.",fx:"click"},
+      {a:"shell",arrow:2,say:"Πυρήνα, ο χρήστης πάτησε «Αναπαραγωγή». Φέρε το αρχείο ήχου!",ex:"Ο Φλοιός <b>μεταφράζει</b> το πάτημα του κουμπιού σε εντολή συστήματος."},
+      {a:"kernel",arrow:3,say:"Δίσκε, βρες το τραγούδι! RAM, φόρτωσέ το! Επεξεργαστή, αποκωδικοποίησέ το! Ηχεία, ετοιμαστείτε!",ex:"Ο Πυρήνας <b>μοιράζει δουλειές</b> σε κάθε κομμάτι του υλικού."},
+      {a:"disk",say:"Βρήκα το αρχείο τραγούδι.mp3!",ex:"Το τραγούδι είναι αποθηκευμένο μόνιμα στον δίσκο."},
+      {a:"ram",say:"Φορτώνω το τραγούδι στη μνήμη!",ex:"Για να παίζει χωρίς κολλήματα, το τραγούδι φορτώνεται στη γρήγορη μνήμη RAM."},
+      {a:"cpu",say:"Μετατρέπω τα 0 και 1 σε ήχο!",ex:"Ο επεξεργαστής <b>αποκωδικοποιεί</b> το αρχείο ήχου."},
+      {a:"spk",say:"🎶 Λα-λα-λα! Παίζω τη μουσική!",ex:"Τα ηχεία είναι συσκευή <b>εξόδου</b> ήχου."},
+      {a:"screen",say:"Δείχνω το πρόγραμμα αναπαραγωγής!",ex:"Ταυτόχρονα η οθόνη δείχνει τι παίζει.",fx:"music"},
+      {a:"user",arrow:"back",say:"Ακούω το τραγούδι μου! 😄",ex:"Ίδια διαδρομή: <b>Χρήστης → Φλοιός → Πυρήνας → Υλικό</b>. Αυτή τη φορά δούλεψαν και τα ηχεία."}
+    ]},
+  save:{
+    label:"💾 Αποθήκευσε την εργασία", icon:"doc", uses:["kbd","disk","ram","cpu","screen"],
+    steps:[
+      {a:"user",arrow:1,say:"Θέλω να αποθηκεύσω την εργασία μου!",ex:"Ο χρήστης πατάει <b>Ctrl + S</b> στο πληκτρολόγιο.",fx:"doc"},
+      {a:"kbd",say:"Πατήθηκαν τα πλήκτρα Ctrl και S!",ex:"Το πληκτρολόγιο είναι συσκευή <b>εισόδου</b>: στέλνει στον υπολογιστή τι πάτησε ο χρήστης."},
+      {a:"shell",arrow:2,say:"Πυρήνα, ο χρήστης πάτησε «Αποθήκευση». Γράψε το αρχείο στον δίσκο!",ex:"Ο Φλοιός καταλαβαίνει τι σημαίνει Ctrl+S και το λέει στον Πυρήνα."},
+      {a:"kernel",arrow:3,say:"RAM, δώσε μου το κείμενο! Επεξεργαστή, ετοίμασέ το! Δίσκε, γράψ' το μόνιμα!",ex:"Αυτή τη φορά τα δεδομένα πάνε <b>ανάποδα</b>: από τη RAM προς τον δίσκο."},
+      {a:"ram",say:"Εδώ είναι το κείμενο που γράφεις!",ex:"Όσο γράφεις, η εργασία βρίσκεται στη RAM. Αν κοπεί το ρεύμα πριν την αποθήκευση… χάνεται! 😱"},
+      {a:"cpu",say:"Ετοιμάζω το αρχείο Εργασία.docx!",ex:"Ο επεξεργαστής εκτελεί την εντολή αποθήκευσης."},
+      {a:"disk",say:"Γράφω το αρχείο μόνιμα! ✍️",ex:"Τώρα η εργασία είναι ασφαλής στον δίσκο, ακόμα κι αν κλείσει ο υπολογιστής."},
+      {a:"screen",say:"Δείχνω το μήνυμα «Αποθηκεύτηκε ✓»",ex:"Η οθόνη ενημερώνει τον χρήστη.",fx:"saved"},
+      {a:"user",arrow:"back",say:"Η εργασία μου σώθηκε! 😌",ex:"Η εντολή ξεκίνησε από συσκευή εισόδου (πληκτρολόγιο) και πέρασε <b>Φλοιό → Πυρήνα → Υλικό</b>."}
+    ]}
+};
+
+/* ===================== SIM STATE ===================== */
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let cur = "photos", idx = -1, timer = null;
+const crashBox = $("#crash");
+
+function steps(){
+  const st = SCEN[cur].steps;
+  if(!crashBox.checked) return st;
+  const out = []; for(const s of st){ out.push(s); if(s.a==="shell") break; }
+  out.push({a:"kernel",dead:true,say:"……… (σιωπή)",ex:"Ο Πυρήνας <b>λείπει</b>! Ο Φλοιός περιμένει απάντηση, το Υλικό περιμένει εντολές. Ο υπολογιστής δεν κάνει τίποτα."});
+  out.push({a:"hwwait",say:"Είμαστε εδώ… αλλά ποιος θα μας πει τι να κάνουμε; 😴",ex:"Το υλικό λειτουργεί μόνο όταν το λογισμικό του δίνει εντολές."});
+  return out;
+}
+
+function buildScen(){
+  const box = $("#scen"); box.innerHTML = "";
+  for(const k in SCEN){
+    const b = document.createElement("button");
+    b.textContent = SCEN[k].label; b.className = k===cur?"on":"";
+    b.onclick = () => { cur = k; buildScen(); reset(); };
+    box.appendChild(b);
+  }
+}
+
+function reset(){
+  stopAuto(); idx = -1;
+  $$(".node,.hw").forEach(n=>n.classList.remove("active","done","dead","sleep","unused"));
+  $$(".arrow").forEach(a=>a.classList.remove("go","back"));
+  $("#hwbox").classList.remove("on");
+  HW.forEach(h=>{ if(!SCEN[cur].uses.includes(h)) document.querySelector(`.hw[data-h="${h}"]`).classList.add("unused"); });
+  $("#win").classList.remove("on"); $("#bsod").classList.remove("on");
+  $$(".dicon").forEach(d=>d.classList.remove("hl"));
+  $("#cursor").style.cssText = "left:60%;top:70%";
+  $("#why").classList.remove("on"); $("#ans").classList.remove("on");
+  if(crashBox.checked) $('.node[data-n="kernel"]').classList.add("dead");
+  const b = $("#bubble"); b.className = "bubble";
+  b.innerHTML = `<div class="who"><span class="ic">👋</span><span>${crashBox.checked?"Προσοχή: ο Πυρήνας «κράσαρε»!":"Έτοιμοι;"}</span></div>
+    <div class="say">Εντολή: ${SCEN[cur].label}</div>
+    <div class="explain">Πάτα «Ξεκίνα» για να δεις τη διαδρομή βήμα-βήμα, ή «Αυτόματα» για να παίξει μόνη της.</div>`;
+  $("#next").textContent = "Ξεκίνα ▶";
+  renderDots();
+}
+
+function renderDots(){
+  const n = steps().length;
+  $("#dots").innerHTML = Array.from({length:n},(_,i)=>`<span class="${i<idx?"done":i===idx?"now":""}"></span>`).join("");
+  $("#prev").disabled = idx<=0;
+  $("#next").disabled = idx>=n-1;
+}
+
+function nodeOf(a){
+  if(HW.includes(a)) return document.querySelector(`.hw[data-h="${a}"]`);
+  if(a==="hwwait") return null;
+  return document.querySelector(`.node[data-n="${a}"]`);
+}
+
+function show(i){
+  const st = steps(); idx = i;
+  // clear
+  $$(".node,.hw").forEach(n=>n.classList.remove("active","done","sleep"));
+  $$(".arrow").forEach(a=>{a.classList.remove("go","back"); void a.offsetWidth;});
+  $("#hwbox").classList.remove("on");
+  $("#win").classList.remove("on"); $("#bsod").classList.remove("on");
+  $$(".dicon").forEach(d=>d.classList.remove("hl"));
+  $("#why").classList.remove("on");
+  if(crashBox.checked) $('.node[data-n="kernel"]').classList.add("dead");
+
+  // done marks
+  for(let j=0;j<i;j++){ const n=nodeOf(st[j].a); if(n && !st[j].dead) n.classList.add("done"); }
+  const s = st[i];
+  const n = nodeOf(s.a);
+  if(n && !s.dead) n.classList.add("active");
+  if(HW.includes(s.a) || s.a==="hwwait") $("#hwbox").classList.add("on");
+  if(s.a==="hwwait"){ SCEN[cur].uses.forEach(h=>document.querySelector(`.hw[data-h="${h}"]`).classList.add("sleep")); }
+
+  // arrows
+  if(s.arrow==="back"){ $$(".arrow").forEach(a=>a.classList.add("go","back")); }
+  else if(s.arrow){ document.querySelector(`.arrow[data-a="${s.arrow}"]`).classList.add("go"); }
+
+  // bubble
+  const A = s.a==="hwwait" ? {name:"Υλικό",ic:"🔧",cls:"hwb"} : ACT[s.a];
+  const b = $("#bubble"); b.className = "bubble "+A.cls;
+  b.innerHTML = `<div class="who"><span class="ic">${s.dead?"💥":A.ic}</span><span>${A.name}${s.dead?" (κράσαρε)":""}</span></div>
+     <div class="say">«${s.say}»</div><div class="explain">${s.ex}</div>`;
+
+  // screen effects (cumulative)
+  const fxs = st.slice(0,i+1).map(x=>x.fx).filter(Boolean);
+  const ic = SCEN[cur].icon;
+  if(fxs.length){ const d=document.querySelector(`.dicon[data-d="${ic}"]`); d.classList.add("hl"); const r=d.getBoundingClientRect(), p=$("#screen").getBoundingClientRect(); $("#cursor").style.left=(r.left-p.left+36)+"px"; $("#cursor").style.top=(r.top-p.top+30)+"px"; }
+  const last = fxs[fxs.length-1];
+  if(last && last!=="click"){ openWin(last); }
+  if(last==="doc" && !fxs.includes("saved")) openWin("doc");
+  if(s.dead || s.a==="hwwait"){ $("#bsod").classList.add("on"); }
+  if(s.a==="hwwait"){ $("#why").classList.add("on"); }
+
+  $("#next").textContent = i>=st.length-1 ? "Τέλος ✓" : "Επόμενο ▶";
+  renderDots();
+}
+
+function openWin(kind){
+  const w=$("#win"), t=$("#wtitle"), body=$("#wbody");
+  if(kind==="photos"){ t.textContent="Φωτογραφίες · Χριστούγεννα"; body.innerHTML='<div class="photos"><div>🎄</div><div>⛄</div><div>🎁</div><div>🕯️</div><div>🍪</div><div>❄️</div><div>👨‍👩‍👧</div><div>🎅</div></div>'; }
+  else if(kind==="music"){ t.textContent="Αναπαραγωγή μουσικής"; body.innerHTML='<div style="text-align:center"><div style="font-size:2.4rem">🎧</div><b>Το αγαπημένο μου τραγούδι</b><div style="height:6px;background:#eee;border-radius:3px;margin:10px 0"><div style="width:35%;height:100%;background:var(--app);border-radius:3px"></div></div>⏮ ⏸ ⏭</div>'; }
+  else if(kind==="doc"){ t.textContent="Εργασία.docx"; body.innerHTML='<div style="font-size:.85rem">Η εργασία μου για την Πληροφορική…<br>Το λειτουργικό σύστημα είναι…<span style="animation:wiggle 1s infinite">|</span></div>'; }
+  else if(kind==="saved"){ t.textContent="Εργασία.docx"; body.innerHTML='<div style="font-size:.85rem">Η εργασία μου για την Πληροφορική…<br>Το λειτουργικό σύστημα είναι…</div><div style="margin-top:14px;background:var(--shell-bg);color:var(--shell);font-weight:700;padding:8px;border-radius:8px;text-align:center">💾 Αποθηκεύτηκε ✓</div>'; }
+  requestAnimationFrame(()=>w.classList.add("on"));
+}
+
+function next(){ const n=steps().length; if(idx<n-1) show(idx+1); else stopAuto(); }
+function prev(){ if(idx>0) show(idx-1); }
+function stopAuto(){ clearInterval(timer); timer=null; $("#auto").textContent="⏯ Αυτόματα"; }
+function auto(){
+  if(timer){ stopAuto(); return; }
+  if(idx>=steps().length-1) reset();
+  $("#auto").textContent="⏸ Παύση"; next();
+  timer=setInterval(()=>{ if(idx>=steps().length-1) stopAuto(); else next(); },3200);
+}
+$("#next").onclick=()=>{stopAuto();next();};
+$("#prev").onclick=()=>{stopAuto();prev();};
+$("#auto").onclick=auto;
+$("#reset").onclick=reset;
+crashBox.onchange=reset;
+$("#showAns").onclick=()=>$("#ans").classList.add("on");
+document.addEventListener("keydown",e=>{ if(!$("#v-sim").classList.contains("on")) return; if(e.key==="ArrowRight"){stopAuto();next();} if(e.key==="ArrowLeft"){stopAuto();prev();} });
+
+/* ===================== TABS ===================== */
+$$("nav.tabs button").forEach(b=>b.onclick=()=>{
+  $$("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  $$("section.view").forEach(v=>v.classList.toggle("on",v.id==="v-"+b.dataset.view));
+  stopAuto();
+});
+
+/* ===================== LAYERS ===================== */
+const LAY = {
+  apps:{t:"🎨 Εφαρμογές (λογισμικό εφαρμογών)",c:"var(--app)",p:"Τα προγράμματα που χρησιμοποιούμε για να κάνουμε κάτι συγκεκριμένο.",l:["Ζωγραφική, επεξεργαστής κειμένου, φυλλομετρητής, παιχνίδια, μουσική","Δεν «πιάνουν» ποτέ απευθείας το υλικό","Ζητούν ό,τι χρειάζονται από το Λειτουργικό Σύστημα"]},
+  shell:{t:"🖱️ Φλοιός (Shell / GUI)",c:"var(--shell)",p:"Η «βιτρίνα» του λειτουργικού συστήματος: ό,τι βλέπουμε και πατάμε.",l:["Επιφάνεια εργασίας, εικονίδια, παράθυρα, μενού","Μεταφράζει τα κλικ και τα πλήκτρα σε εντολές συστήματος","Μιλάει με τον Πυρήνα, όχι με το υλικό"]},
+  kernel:{t:"❤️ Πυρήνας (Kernel)",c:"var(--kernel)",p:"Η «καρδιά» του Λειτουργικού Συστήματος.",l:["Διαχειρίζεται το υλικό: μνήμη, επεξεργαστή, δίσκους, συσκευές","Είναι ο ΜΟΝΟΣ που μιλάει απευθείας στο υλικό","Αν «κρασάρει», ο υπολογιστής σταματά να δουλεύει"]},
+  hw:{t:"🔧 Υλικό (Hardware)",c:"var(--hw)",p:"Τα φυσικά μέρη του υπολογιστή, αυτά που μπορούμε να αγγίξουμε.",l:["Σκληρός δίσκος, μνήμη RAM, επεξεργαστής, οθόνη, πληκτρολόγιο…","Εκτελεί τις εντολές που του δίνει ο Πυρήνας","Χωρίς λογισμικό δεν ξέρει τι να κάνει"]}
+};
+$$("#onion .ring").forEach(g=>g.onclick=()=>{
+  $$("#onion .ring").forEach(x=>x.classList.remove("sel")); g.classList.add("sel");
+  const L=LAY[g.dataset.l], box=$("#linfo");
+  box.style.borderColor=L.c;
+  box.innerHTML=`<h3 style="color:${L.c}">${L.t}</h3><p>${L.p}</p><ul>${L.l.map(x=>`<li>${x}</li>`).join("")}</ul>
+  ${g.dataset.l==="shell"||g.dataset.l==="kernel"?'<p style="margin-top:12px"><span class="chip" style="background:var(--bg)">Φλοιός + Πυρήνας = Λειτουργικό Σύστημα</span></p>':""}`;
+});
+
+/* ===================== ORDER GAME ===================== */
+const ORDER=[["user","🧑‍💻 Χρήστης"],["shell","🖱️ Φλοιός"],["kernel","❤️ Πυρήνας"],["hw","🔧 Υλικό"]];
+let opos=0;
+function buildOrder(){
+  opos=0; $("#omsg").textContent=""; $("#omsg").className="msg";
+  $("#slots").innerHTML='<span style="color:var(--muted)">Η διαδρομή σου θα φανεί εδώ…</span>';
+  const sh=[...ORDER].sort(()=>Math.random()-.5);
+  $("#tiles").innerHTML="";
+  sh.forEach(([k,l])=>{
+    const t=document.createElement("button"); t.className="tile"; t.textContent=l;
+    t.onclick=()=>{
+      if(opos===0) $("#slots").innerHTML="";
+      const s=document.createElement("span"); s.className="slot"; s.textContent=l;
+      if(ORDER[opos][0]===k){
+        if(opos>0) $("#slots").insertAdjacentHTML("beforeend","<b>→</b>");
+        $("#slots").appendChild(s); t.classList.add("placed"); opos++;
+        $("#omsg").className="msg ok";
+        $("#omsg").textContent = opos===4 ? "🎉 Μπράβο! Αυτή είναι η διαδρομή της εντολής!" : "✔ Σωστά, συνέχισε!";
+      } else {
+        s.classList.add("bad"); $("#slots").appendChild(s); setTimeout(()=>s.remove(),600);
+        $("#omsg").className="msg no";
+        $("#omsg").textContent = "✖ Όχι ακόμα! Θυμήσου: ποιος μιλάει σε ποιον;";
+        if(opos===0) setTimeout(()=>{ if(opos===0 && !$("#slots").children.length) $("#slots").innerHTML='<span style="color:var(--muted)">Η διαδρομή σου θα φανεί εδώ…</span>'; },650);
+      }
+    };
+    $("#tiles").appendChild(t);
+  });
+}
+$("#oreset").onclick=buildOrder;
+
+/* ===================== WHO SAID IT ===================== */
+const QUOTES=[
+  ["Θέλω να ανοίξεις τον φάκελο με τις Φωτογραφίες!","user"],
+  ["Πυρήνα, ο χρήστης έκανε διπλό κλικ στο εικονίδιο. Βρες τα δεδομένα!","shell"],
+  ["Σκληρέ Δίσκο, βρες τα αρχεία! Οθόνη, ετοιμάσου!","kernel"],
+  ["Ψάχνω στα αρχεία μου να βρω τη φωτογραφία.","hw"],
+  ["Φορτώνω την πληροφορία! (χέρια ψηλά)","hw"],
+  ["Μεταφράζω το κλικ σε εντολή συστήματος.","shell"],
+  ["Μόνο εγώ μπορώ να μιλήσω στο Hardware!","kernel"]
+];
+const WHO_N=6;           // πλήθος ερωτήσεων ανά γύρο
+let whoSet=[], qi=0, whoScore=0;
+const WHO_LABEL={user:"🧑‍💻 Χρήστης",shell:"🖱️ Φλοιός",kernel:"❤️ Πυρήνας",hw:"🔧 Υλικό"};
+function startWho(){
+  whoSet=[...QUOTES].sort(()=>Math.random()-.5).slice(0,WHO_N);
+  qi=0; whoScore=0;
+  $("#whobox").innerHTML='<div class="qhead" id="whohead" style="margin-top:6px"></div><p style="color:var(--muted);margin:6px 0 10px" id="whoq"></p><div class="tiles" id="whoopts"></div><div class="msg" id="whomsg"></div>';
+  buildWho();
+}
+function buildWho(){
+  if(qi>=WHO_N){
+    const pct=whoScore/WHO_N;
+    $("#whobox").innerHTML=`<div class="score">${pct===1?"🏆":pct>=.6?"🌟":"💪"} ${whoScore} / ${WHO_N}</div>
+      <p style="text-align:center;margin:0 0 12px">${pct===1?"Τέλεια! Ξέρεις τι λέει ο καθένας!":pct>=.6?"Πολύ καλά! Λίγο ακόμα και θα τα βρεις όλα.":"Ξαναδές την προσομοίωση και δοκίμασε πάλι!"}</p>
+      <div style="text-align:center"><button class="btn" id="whoagain">↺ Ξανά</button></div>`;
+    $("#whoagain").onclick=startWho;
+    return;
+  }
+  const [q,ans]=whoSet[qi];
+  $("#whohead").innerHTML=`<span>Ερώτηση ${qi+1} από ${WHO_N}</span><span>Σκορ: ${whoScore}</span>`;
+  $("#whoq").innerHTML=`<b style="color:var(--ink);font-size:1.05rem">«${q}»</b>`;
+  $("#whomsg").textContent=""; $("#whomsg").className="msg";
+  $("#whoopts").innerHTML="";
+  ORDER.forEach(([k,l])=>{
+    const b=document.createElement("button"); b.className="tile"; b.textContent=l; b.dataset.k=k;
+    b.onclick=()=>{
+      $$("#whoopts .tile").forEach(x=>{ x.disabled=true; if(x.dataset.k===ans){x.style.borderColor="var(--shell)";x.style.background="var(--shell-bg)";} });
+      if(k===ans){ whoScore++; $("#whomsg").className="msg ok"; $("#whomsg").textContent="✔ Σωστά!"; }
+      else { b.style.borderColor="var(--kernel)"; b.style.background="var(--kernel-bg)"; $("#whomsg").className="msg no"; $("#whomsg").textContent="✖ Όχι. Το είπε: "+WHO_LABEL[ans]; }
+      $("#whohead").innerHTML=`<span>Ερώτηση ${qi+1} από ${WHO_N}</span><span>Σκορ: ${whoScore}</span>`;
+      setTimeout(()=>{qi++;buildWho();}, k===ans?1100:2000);
+    };
+    $("#whoopts").appendChild(b);
+  });
+}
+
+/* ===================== QUIZ ===================== */
+const QUIZ=[
+  {q:"Ποιο μέρος του υπολογιστή μπορεί να δώσει εντολές απευθείας στο υλικό;",o:["Ο Φλοιός","Ο Πυρήνας","Ο Χρήστης","Οι Εφαρμογές"],a:1,e:"Μόνο ο Πυρήνας (η «καρδιά» του Λειτουργικού Συστήματος) μιλάει απευθείας στο υλικό."},
+  {q:"Τι κάνει ο Φλοιός (GUI);",o:["Αποθηκεύει μόνιμα τα αρχεία","Εκτελεί τους υπολογισμούς","Μεταφράζει τα κλικ του χρήστη σε εντολές για τον Πυρήνα","Δείχνει χρώματα στην οθόνη"],a:2,e:"Ο Φλοιός είναι η «βιτρίνα»: καταλαβαίνει τι θέλει ο χρήστης (εικονίδια, κλικ) και το λέει στον Πυρήνα."},
+  {q:"Ποια είναι η σωστή διαδρομή μιας εντολής;",o:["Χρήστης → Πυρήνας → Φλοιός → Υλικό","Χρήστης → Φλοιός → Πυρήνας → Υλικό","Υλικό → Φλοιός → Χρήστης → Πυρήνας","Χρήστης → Υλικό → Πυρήνας → Φλοιός"],a:1,e:"Ο χρήστης μιλάει στον Φλοιό, ο Φλοιός στον Πυρήνα και ο Πυρήνας στο Υλικό."},
+  {q:"Ο Πυρήνας «κράσαρε». Ο δίσκος, η RAM και η οθόνη δουλεύουν κανονικά. Τι θα γίνει όταν ο χρήστης κάνει κλικ;",o:["Θα ανοίξουν κανονικά οι φωτογραφίες","Ο Φλοιός θα μιλήσει απευθείας στον δίσκο","Τίποτα: κανείς δεν δίνει εντολές στο υλικό","Η οθόνη θα βρει μόνη της τα αρχεία"],a:2,e:"Χωρίς λογισμικό (Πυρήνα) το υλικό δεν ξέρει τι να κάνει, ακόμα κι αν είναι εντάξει."},
+  {q:"Πού «φορτώνονται» οι φωτογραφίες για να τις δούμε γρήγορα;",o:["Στη μνήμη RAM","Στο ποντίκι","Στον Φλοιό","Στα ηχεία"],a:0,e:"Τα αρχεία μένουν μόνιμα στον δίσκο, αλλά για να δουλέψουμε μαζί τους φορτώνονται στη γρήγορη, προσωρινή μνήμη RAM."},
+  {q:"Ποια δύο μέρη μαζί αποτελούν το Λειτουργικό Σύστημα;",o:["Οθόνη και Πληκτρολόγιο","Φλοιός και Πυρήνας","RAM και Σκληρός Δίσκος","Χρήστης και Εφαρμογές"],a:1,e:"Ο Φλοιός (ό,τι βλέπουμε) και ο Πυρήνας (η καρδιά) είναι το Λειτουργικό Σύστημα."},
+  {q:"Ποιο από τα παρακάτω είναι ΥΛΙΚΟ;",o:["Ο Πυρήνας","Η επιφάνεια εργασίας με τα εικονίδια","Ο Επεξεργαστής","Το πρόγραμμα Ζωγραφικής"],a:2,e:"Ο επεξεργαστής είναι φυσικό κομμάτι του υπολογιστή: υλικό. Τα άλλα είναι λογισμικό."}
+];
+let qn=0, qscore=0;
+function buildQuiz(){
+  const box=$("#quiz");
+  if(qn>=QUIZ.length){
+    const pct=qscore/QUIZ.length;
+    box.innerHTML=`<h2 style="font-size:1.2rem">📝 Κουίζ</h2><div class="score">${pct===1?"🏆":pct>=.6?"🌟":"💪"} ${qscore} / ${QUIZ.length}</div>
+      <p style="text-align:center">${pct===1?"Τέλεια! Είσαι έτοιμος/η να γίνεις Πυρήνας!":pct>=.6?"Πολύ καλά! Ξαναδές την προσομοίωση για όσα δεν βρήκες.":"Ξαναπαίξε την προσομοίωση και δοκίμασε πάλι!"}</p>
+      <div style="text-align:center"><button class="btn" id="qagain">↺ Ξανά από την αρχή</button></div>`;
+    $("#qagain").onclick=()=>{qn=0;qscore=0;buildQuiz();};
+    return;
+  }
+  const Q=QUIZ[qn];
+  box.innerHTML=`<h2 style="font-size:1.2rem">📝 Κουίζ</h2><div class="qhead"><span>Ερώτηση ${qn+1} από ${QUIZ.length}</span><span>Σκορ: ${qscore}</span></div>
+    <div class="q">${Q.q}</div><div class="opts">${Q.o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join("")}</div>
+    <div class="fb" id="fb"></div><div class="navrow"><button class="btn" id="qnext" style="display:none">Επόμενη ▶</button></div>`;
+  box.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    box.querySelectorAll(".opts button").forEach(x=>{x.disabled=true; if(+x.dataset.i===Q.a) x.classList.add("right");});
+    if(i===Q.a){qscore++;} else b.classList.add("wrong");
+    const fb=$("#fb"); fb.classList.add("on");
+    fb.innerHTML=(i===Q.a?"<b>✔ Σωστά!</b> ":"<b>✖ Όχι ακριβώς.</b> ")+Q.e;
+    $("#qnext").style.display="inline-block";
+  });
+  $("#qnext").onclick=()=>{qn++;buildQuiz();};
+}
+
+/* ===================== INIT ===================== */
+buildScen(); reset(); buildOrder(); startWho(); buildQuiz();
+</script>
+</body>
+</html>
